@@ -1,12 +1,12 @@
 import React from 'react';
-import { Navbar } from '@components';
+import { Desktop, Navbar } from '@components';
 
 const App = () => {
   return (
-    <React.Fragment>
+    <div className='w-full h-screen'>
       <Navbar />
-      {/* Your other app components go here */}
-    </React.Fragment>
+      <Desktop />
+    </div>
   );
 };
 

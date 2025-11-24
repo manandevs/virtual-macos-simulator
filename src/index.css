@@ -1,19 +1,35 @@
 @import url("https://fonts.googleapis.com/css2?family=Georama:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap");
-
 @import "tailwindcss";
+
 
 html,
 body {
   width: 100dvw;
   overflow: hidden;
   height: 100dvh;
-  background-image: url("/images/wallpaper.png");
+  background-image: url("/images/wallpaper.webp");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
 }
 
+@font-face {
+  font-family: 'Handmade';
+  src: url('/fonts/Simple Handmade.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Xirstark';
+  src: url('/fonts/Xirstark Demo.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 @theme {
+  --font-xirstark: "Xirstark", sans-serif;
+  --font-handmade: "Handmade", sans-serif;
   --font-georama: "Georama", sans-serif;
   --font-roboto: "Roboto Mono", monospace;
   --breakpoint-3xl: 1920px;
@@ -37,7 +53,7 @@ body {
   }
 
   nav {
-    @apply flex justify-between items-center bg-white/50 backdrop-blur-3xl p-2 px-5 select-none;
+    @apply flex justify-between items-center p-2 px-5 select-none;
 
     div {
       @apply flex items-center max-sm:w-full max-sm:justify-center gap-5;
