@@ -17,20 +17,12 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav
-      className="
-        w-full fixed top-0 left-0 z-50
-        backdrop-blur-xl bg-white/30 border-b border-white/20
-        shadow-md px-6 py-3 
-        flex items-center justify-between
-        transition-all duration-300
-      "
-    >
+    <nav className="w-full fixed top-0 left-0 z-50 backdrop-blur-xl bg-white/30 border-b border-white/20 shadow-md px-6 py-1 flex items-center justify-between transition-all duration-300">
       {/* Left section */}
       <div className="flex items-center gap-8">
         {/* Logo */}
-        <span className="flex items-center gap-2 font-xirstark text-gray-900 text-lg sm:text-xl">
-          <IoLogoApple className="w-6 h-6 -mt-1" />
+        <span className="flex items-center gap-2 font-xirstark text-gray-900 text-lg sm:text-xl pt-2.5">
+          <IoLogoApple className="w-6 h-6 -mt-3" />
           Virtual macOS
         </span>
 
