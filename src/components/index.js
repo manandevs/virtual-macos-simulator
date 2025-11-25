@@ -1,4 +1,5 @@
-import Navbar from './Navbar';
+import Toolbar from './Toolbar';
 import Desktop from './Desktop';
+import Dock from './Dock';
 
-export { Navbar, Desktop };
+export { Toolbar, Desktop, Dock };

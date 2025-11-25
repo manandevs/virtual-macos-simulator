@@ -42,7 +42,7 @@ const setupTextHover = (container, type) => {
             const letterRect = letter.getBoundingClientRect()
             const center = letterRect.left - rect.left + letterRect.width / 2
             const distance = Math.abs(mouseX - center)
-            const intensity = Math.exp(-(distance ** 2) / 1500)
+            const intensity = Math.exp(-(distance ** 2.5) / 2000)
             const weight = min + (max - min) * intensity
             animateWeight(letter, weight)
         })
@@ -92,13 +92,13 @@ const Desktop = () => {
             <h1 ref={titleRef} className='text-center'>
                 <AnimatedText
                     text={"virtual MACOS Simulator"}
-                    className={"text-9xl font-handmade"}
+                    className={"text-7xl sm:text-8xl md:text-9xl font-handmade"}
                 />
             </h1>
             <p ref={subtitleRef} className="text-center px-4 mt-6">
                 <AnimatedText
                     text="Experience a realistic macOS environment directly in your browser with our fully web-based virtual simulator."
-                    className="text-3xl font-georama"
+                    className="text-2xl md:text-3xl font-georama font-thin"
                 />
             </p>
         </section>

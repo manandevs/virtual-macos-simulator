@@ -1,11 +1,12 @@
 import React from 'react';
-import { Desktop, Navbar } from '@components';
+import { Desktop, Toolbar ,Dock} from '@components';
 
 const App = () => {
   return (
     <div className='w-full h-screen'>
-      <Navbar />
+      <Toolbar />
       <Desktop />
+      <Dock />
     </div>
   );
 };
