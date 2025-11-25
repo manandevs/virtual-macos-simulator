@@ -33,8 +33,8 @@ const Toolbar = () => {
                 key={item.id}
                 onClick={() => setActiveLink(item.id)}
                 className={`flex items-center gap-1 capitalize cursor-pointer relative transition-all duration-200 group ${isActive
-                    ? "text-black font-semibold"
-                    : "text-gray-900 hover:text-black"
+                  ? "text-black font-semibold"
+                  : "text-gray-900 hover:text-black"
                   }`}
               >
                 <GoDotFill
@@ -68,8 +68,8 @@ const Toolbar = () => {
           <span>{time.format("ddd MMM D h:mm:ss A")}</span>
         </div>
       </div>
-      <span className="block md:hidden px-2 py-0.5 bg-red-500 text-white rounded-full text-xs">
-        Features Unabled
+      <span className="block md:hidden px-2 py-0.5 bg-[#ff000077] text-white rounded-full text-xs">
+        Features Unavailable
       </span>
     </nav>
   );
