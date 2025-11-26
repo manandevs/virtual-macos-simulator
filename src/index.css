@@ -14,6 +14,20 @@ body {
 }
 
 @font-face {
+  font-family: 'Recoleta';
+  src: url('/fonts/Recoleta.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Whimsy';
+  src: url('/fonts/Whimsy Bittersweet Demo.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Handmade';
   src: url('/fonts/Simple Handmade.otf') format('opentype');
   font-weight: 100 900;
@@ -28,6 +42,8 @@ body {
 }
 
 @theme {
+  --font-recoleta: "Recoleta", sans-serif;
+  --font-whimsy: "Whimsy", sans-serif;
   --font-xirstark: "Xirstark", sans-serif;
   --font-handmade: "Handmade", sans-serif;
   --font-georama: "Georama", sans-serif;
@@ -95,7 +111,7 @@ body {
   }
 
   #dock {
-    @apply absolute bottom-5 left-1/2 -translate-x-1/2 z-50 select-none max-sm:hidden;
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 z-50 select-none max-sm:hidden;
 
     .dock-container {
       @apply bg-white/20 backdrop-blur-md justify-between rounded-2xl p-1.5 flex items-end;
