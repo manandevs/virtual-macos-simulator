@@ -3,9 +3,12 @@
 // --------------------
 
 export const navLinks = [
-  { id: 1, name: "Projects", type: "finder" },
-  { id: 3, name: "Contact", type: "contact" },
-  { id: 4, name: "Resume", type: "resume" },
+  { id: "file", name: "File" },
+  { id: "edit", name: "Edit" },
+  { id: "view", name: "View" },
+  { id: "go", name: "Go" },
+  { id: "window", name: "Window" },
+  { id: "help", name: "Help" },
 ];
 
 export const navIcons = [
@@ -25,7 +28,7 @@ export const dockApps = [
   { id: "photos", name: "Gallery", icon: "photos.png", canOpen: true },
   { id: "contact", name: "Contact", icon: "contact.png", canOpen: true },
   { id: "terminal", name: "Skills", icon: "terminal.png", canOpen: true },
-  { id: "trash", name: "Archive", icon: "trash.png", canOpen: false },
+  { id: "trash", name: "Skills", icon: "trash.png", canOpen: true },
 ];
 
 // --------------------
@@ -419,6 +422,7 @@ export const WINDOW_CONFIG = {
   safari: { isOpen: false, zIndex: INITIAL_Z_INDEX, data: null },
   photos: { isOpen: false, zIndex: INITIAL_Z_INDEX, data: null },
   terminal: { isOpen: false, zIndex: INITIAL_Z_INDEX, data: null },
+  trash: { isOpen: false, zIndex: INITIAL_Z_INDEX, data: null },
   txtfile: { isOpen: false, zIndex: INITIAL_Z_INDEX, data: null },
   imgfile: { isOpen: false, zIndex: INITIAL_Z_INDEX, data: null },
 };

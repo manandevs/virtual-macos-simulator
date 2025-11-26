@@ -15,7 +15,7 @@ const Toolbar = () => {
   }, []);
 
   return (
-    <nav className="w-full fixed top-0 left-0 z-50 backdrop-blur-xl bg-white/30 border-b border-white/20 shadow-md px-6 py-1 flex items-center justify-between transition-all duration-300">
+    <nav className="w-full fixed top-0 left-0 z-50 backdrop-blur-xl bg-white/30 shadow-md px-6 py-1 flex items-center justify-between transition-all duration-300">
       {/* Left section */}
       <div className="flex items-center gap-8">
         {/* Logo */}
@@ -32,13 +32,13 @@ const Toolbar = () => {
               <li
                 key={item.id}
                 onClick={() => setActiveLink(item.id)}
-                className={`flex items-center gap-1 capitalize cursor-pointer relative transition-all duration-200 group ${isActive
-                    ? "text-black font-semibold"
-                    : "text-gray-900 hover:text-black"
+                className={`font-recoleta flex items-center gap-1 capitalize cursor-pointer relative transition-all duration-200 group ${isActive
+                  ? "text-black font-semibold"
+                  : "text-gray-900 hover:text-black"
                   }`}
               >
                 <GoDotFill
-                  className={`w-3 h-3 opacity-70 transition-all duration-200 ${isActive ? "text-black rotate-90 block" : "rotate-0 hidden"
+                  className={`w-2 h-2 opacity-70 transition-all duration-200 ${isActive ? "text-black rotate-90 block" : "rotate-0 hidden"
                     }`}
                 />
                 {item.name}
@@ -68,8 +68,8 @@ const Toolbar = () => {
           <span>{time.format("ddd MMM D h:mm:ss A")}</span>
         </div>
       </div>
-      <span className="block md:hidden px-2 py-0.5 bg-red-500 text-white rounded-full text-xs">
-        Features Unabled
+      <span className="block md:hidden px-2 py-0.5 bg-[#ff000077] text-white rounded-full text-xs">
+        Features Unavailable
       </span>
     </nav>
   );

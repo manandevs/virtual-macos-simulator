@@ -4,13 +4,13 @@ import React, { useRef, useEffect } from 'react'
 
 const FONT_WEIGHTS = {
     title: { min: 400, max: 900, default: 400 },
-    subtitle: { min: 100, max: 400, default: 100 },
+    subtitle: { min: 200, max: 400, default: 200 },
 }
 
 // Render each word with characters inside, keep spaces separate
 const renderWordText = (text, className) => {
     return text.split(" ").map((word, wi) => (
-        <span key={wi} className="inline-block mr-2">
+        <span key={wi} className="inline-block">
             {[...word].map((char, ci) => (
                 <span key={ci} className={className}>
                     {char}
@@ -42,7 +42,7 @@ const setupTextHover = (container, type) => {
             const letterRect = letter.getBoundingClientRect()
             const center = letterRect.left - rect.left + letterRect.width / 2
             const distance = Math.abs(mouseX - center)
-            const intensity = Math.exp(-(distance ** 2.5) / 2000)
+            const intensity = Math.exp(-(distance ** 2) / 10000)
             const weight = min + (max - min) * intensity
             animateWeight(letter, weight)
         })
@@ -64,7 +64,7 @@ const setupTextHover = (container, type) => {
 
 const AnimatedText = ({ text, className = "" }) => {
     return (
-        <div className={`flex flex-wrap justify-center ${className}`}>
+        <div className={`flex flex-wrap justify-center space-x-2 ${className}`}>
             {renderWordText(text, "inline-block transition-all duration-100 hover:scale-110 hover:text-gray-900")}
         </div>
     )
@@ -92,13 +92,13 @@ const Desktop = () => {
             <h1 ref={titleRef} className='text-center'>
                 <AnimatedText
                     text={"virtual MACOS Simulator"}
-                    className={"text-7xl sm:text-8xl md:text-9xl font-handmade"}
+                    className={"text-7xl sm:text-8xl md:text-9xl font-handmade space-x-10"}
                 />
             </h1>
-            <p ref={subtitleRef} className="text-center px-4 mt-6">
+            <p ref={subtitleRef} className="text-center px-4 mt-6 max-w-3xl mx-auto">
                 <AnimatedText
                     text="Experience a realistic macOS environment directly in your browser with our fully web-based virtual simulator."
-                    className="text-2xl md:text-3xl font-georama font-thin"
+                    className="text-2xl md:text-3xl font-georama font-extralight"
                 />
             </p>
         </section>
