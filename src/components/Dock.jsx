@@ -7,7 +7,9 @@ import useWindowStore from "@store/window";
 
 const Dock = () => {
   const dockRef = useRef(null);
-  const { openWindow, windows } = useWindowStore();
+
+  // ❗ DO NOT TOUCH — as you requested
+  const { openWindow, closeWindow, windows } = useWindowStore();
 
   useGSAP(() => {
     const dock = dockRef.current;
@@ -21,15 +23,12 @@ const Dock = () => {
         const { left: iconLeft, width } = icon.getBoundingClientRect();
         const center = iconLeft - left + width / 2;
         const distance = Math.abs(mouseX - center);
-        
-        const intensity = Math.max(0, 1 - distance / 150);
-        const scale = 1 + 0.3 * Math.sin(intensity * Math.PI / 2);
+        const intensity = Math.exp(-(distance ** 2) / 2000);
 
         gsap.to(icon, {
-          scale: scale,
-          y: -10 * intensity,
-          duration: 0.1,
-          overwrite: true,
+          scale: 1 + 0.25 * intensity,
+          duration: 0.2,
+          ease: "power1.out",
         });
       });
     };
@@ -44,8 +43,8 @@ const Dock = () => {
         gsap.to(icon, {
           scale: 1,
           y: 0,
-          duration: 0.2,
-          overwrite: true,
+          duration: 0.3,
+          ease: "power1.out",
         });
       });
     };
@@ -59,49 +58,59 @@ const Dock = () => {
     };
   });
 
-  const toggleApp = (app) => {
-    if (!app.canOpen) return;
-    
-    // Add bounce animation
-    const btn = document.getElementById(`dock-btn-${app.id}`);
-    if (btn) {
-        gsap.to(btn, { y: -20, duration: 0.2, yoyo: true, repeat: 1 });
-    }
+const toggleApp = (app) => {
+  if (!app.canOpen) return;
 
-    // Always use openWindow to handle opening, bringing to front, AND restoring from minimize
+  const win = windows[app.id]; // <-- correct variable
+  if (win?.isOpen) {
+    closeWindow(app.id);
+  } else {
     openWindow(app.id);
-  };
+  }
+
+  console.log(win, app);
+};
+
 
   return (
-    <section id="dock" ref={dockRef} className="fixed bottom-4 left-1/2  flex justify-center z-[9999]">
-      <div className="dock-container px-4 pb-2 pt-3 bg-white/30 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-2xl flex gap-3 items-end h-auto transition-all">
+    <section id="dock" ref={dockRef} className="fixed bottom-2 left-1/2 -translate-x-1/2 z-40">
+      <div className="dock-container px-2">
         {dockApps.map((app) => (
           <button
-            id={`dock-btn-${app.id}`}
             type="button"
             key={app.id}
-            className="dock-icon group relative flex flex-col items-center justify-end w-12 sm:w-14 transition-all duration-100 origin-bottom"
+            className="dock-icon group"
+
             aria-label={app.name}
             data-tooltip-id="dock-tooltip"
             data-tooltip-content={app.name}
+            data-tooltip-delay-show="150"
+            disabled={!app.canOpen}
             onClick={() => toggleApp(app)}
           >
-            <img
-              src={`/images/${app.icon}`}
-              alt={app.name}
-              className="w-full h-auto object-contain drop-shadow-md"
-            />
-            
-            <div
-              className={`absolute -bottom-1.5 w-1 h-1 rounded-full bg-gray-800 transition-all duration-300 ${
-                windows[app.id]?.isOpen ? "opacity-100 scale-100" : "opacity-0 scale-0"
-              }`}
-            />
+            <div className="relative flex flex-col items-center">
+              <img
+                src={`/images/${app.icon}`}
+                alt={app.name}
+                className="transition-transform duration-200"
+              />
+
+              {windows[app.id]?.isOpen && (
+                <div
+                  className={`
+          absolute -bottom-0.5 h-1 rounded-full transition-all duration-150 
+          shadow-[0_0_6px_rgba(66,133,244,0.9)]
+          w-3 bg-gray-200 group-hover:w-8 group-hover:bg-blue-400
+          ${windows[app.id]?.isOpen ? "w-6 bg-blue-400" : ""}
+        `}
+                />
+              )}
+            </div>
           </button>
         ))}
-        <Tooltip id="dock-tooltip" place="top" className="!px-2 !py-1 !text-xs !bg-gray-800 !text-white !rounded shadow-lg z-[10000]" offset={15} />
+        <Tooltip id="dock-tooltip" place="top" className="tooltip" />
       </div>
-    </section>
+    </section >
   );
 };
 
