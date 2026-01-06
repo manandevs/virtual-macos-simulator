@@ -73,8 +73,8 @@ const toggleApp = (app) => {
 
 
   return (
-    <section id="dock" ref={dockRef}>
-      <div className="dock-container px-2 scale-[0.75]">
+    <section id="dock" ref={dockRef} className="fixed bottom-2 left-1/2 -translate-x-1/2 z-40">
+      <div className="dock-container px-2">
         {dockApps.map((app) => (
           <button
             type="button"

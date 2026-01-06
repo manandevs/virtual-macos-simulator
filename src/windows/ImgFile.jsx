@@ -22,4 +22,5 @@ const ImgFile = () => {
   );
 };
 
-export default WindowWrapper(ImgFile, "imgfile");
+const ImgFileWindow = WindowWrapper(ImgFile, "imgfile");
+export default ImgFileWindow;
