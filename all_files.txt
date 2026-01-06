@@ -1,0 +1,2759 @@
+=== D:\virtual-macos-simulator\.coderabbit.yaml ===
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+{}
+
+
+=== D:\virtual-macos-simulator\.gitignore ===
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+
+=== D:\virtual-macos-simulator\eslint.config.js ===
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+
+
+=== D:\virtual-macos-simulator\index.html ===
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/macbook.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mac-os-portfolio</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+=== D:\virtual-macos-simulator\list-files.cjs ===
+const fs = require('fs');
+const path = require('path');
+
+// Folders to ignore
+const IGNORED_FOLDERS = new Set(['node_modules', '.next', 'dist', '.git', 'out', 'public', 'ui']);
+
+// Specific files to ignore
+const IGNORED_FILES = new Set(['README.md', 'package-lock.json', 'all_files.txt']);
+
+// File extensions to ignore (e.g., image types)
+const IGNORED_EXTENSIONS = new Set([
+    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.svg', '.webp', '.ico', '.tiff', '.psd', '.json', 'mjs', 'cjs'
+]);
+
+// Recursive function to get all files
+function listFiles(dirPath, fileList = []) {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+
+        if (entry.isDirectory()) {
+            if (!IGNORED_FOLDERS.has(entry.name)) {
+                listFiles(fullPath, fileList);
+            }
+        } else {
+            const ext = path.extname(entry.name).toLowerCase();
+            if (!IGNORED_FILES.has(entry.name) && !IGNORED_EXTENSIONS.has(ext)) {
+                fileList.push(fullPath);
+            }
+        }
+    }
+
+    return fileList;
+}
+
+// ✅ Target directory (current folder)
+const targetDir = path.resolve(__dirname, './');
+const outputFile = path.join(__dirname, 'all_files.txt');
+
+const files = listFiles(targetDir);
+
+// Create write stream
+const writeStream = fs.createWriteStream(outputFile, { flags: 'w' });
+
+files.forEach(file => {
+    try {
+        const content = fs.readFileSync(file, 'utf8');
+        writeStream.write(`=== ${file} ===\n`);
+        writeStream.write(content + '\n\n');
+    } catch (err) {
+        writeStream.write(`Could not read file ${file}: ${err.message}\n\n`);
+    }
+});
+
+writeStream.end(() => {
+    console.log(`✅ All file names and contents written to: ${outputFile}`);
+});
+
+
+=== D:\virtual-macos-simulator\src\App.jsx ===
+import React, { useState } from "react";
+import { Desktop, Toolbar, Dock } from "@components";
+import Spotlight from "./components/Spotlight";
+import { 
+  TerminalWindow, 
+  Finder, 
+  Contact, 
+  Safari, 
+  Photos, 
+  Resume, 
+  ImgFile, 
+  TxtFile,
+  Calculator 
+} from "@windows";
+import useWindowStore from "@store/window";
+
+import gsap from "gsap";
+import { Draggable } from "gsap/Draggable";
+
+gsap.registerPlugin(Draggable);
+
+const ContextMenu = ({ x, y, close }) => {
+    return (
+        <div 
+            className="fixed z-[99999] bg-white/90 backdrop-blur-md w-48 rounded-lg shadow-xl border border-gray-200 py-1 flex flex-col select-none"
+            style={{ top: y, left: x }}
+            onMouseLeave={close}
+        >
+             <button className="text-left px-4 py-1 hover:bg-blue-500 hover:text-white text-sm">New Folder</button>
+             <div className="h-[1px] bg-gray-300 my-1"></div>
+             <button className="text-left px-4 py-1 hover:bg-blue-500 hover:text-white text-sm">Get Info</button>
+             <button className="text-left px-4 py-1 hover:bg-blue-500 hover:text-white text-sm">Change Wallpaper...</button>
+             <div className="h-[1px] bg-gray-300 my-1"></div>
+             <button className="text-left px-4 py-1 hover:bg-blue-500 hover:text-white text-sm">Clean Up</button>
+        </div>
+    );
+};
+
+const App = () => {
+  const { closeAllOverlays } = useWindowStore();
+  const [contextMenu, setContextMenu] = useState(null);
+
+  const handleRightClick = (e) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleClick = () => {
+    if (contextMenu) setContextMenu(null);
+    closeAllOverlays();
+  };
+
+  return (
+    <div 
+        className="w-full h-screen overflow-hidden relative" 
+        onContextMenu={handleRightClick} 
+        onClick={handleClick}
+    >
+      <Toolbar />
+      <Desktop />
+      <Dock />
+      <Spotlight />
+
+      {contextMenu && <ContextMenu {...contextMenu} close={() => setContextMenu(null)} />}
+
+      <div className="absolute inset-0 pointer-events-none [&>section]:pointer-events-auto">
+        <Finder />
+        <Safari />
+        <Photos />
+        <Contact />
+        <TerminalWindow />
+        <Calculator />
+        <Resume />
+        
+        <ImgFile />
+        <TxtFile />
+      </div>
+    </div>
+  );
+};
+
+export default App;
+
+=== D:\virtual-macos-simulator\src\components\Desktop.jsx ===
+import { useGSAP } from '@gsap/react'
+import gsap from 'gsap'
+import React, { useRef, useEffect } from 'react'
+
+const FONT_WEIGHTS = {
+    title: { min: 400, max: 900, default: 400 },
+    subtitle: { min: 200, max: 400, default: 200 },
+}
+
+// Render each word with characters inside, keep spaces separate
+const renderWordText = (text, className) => {
+    return text.split(" ").map((word, wi) => (
+        <span key={wi} className="inline-block">
+            {[...word].map((char, ci) => (
+                <span key={ci} className={className}>
+                    {char}
+                </span>
+            ))}
+        </span>
+    ))
+}
+
+const setupTextHover = (container, type) => {
+    if (!container) return
+
+    const letters = container.querySelectorAll("span > span")
+    const { min, max, default: base } = FONT_WEIGHTS[type]
+
+    const animateWeight = (letter, weight, duration = 0.25) => {
+        gsap.to(letter, {
+            duration,
+            ease: 'power2.out',
+            fontVariationSettings: `"wght" ${weight}`,
+        })
+    }
+
+    const handleMouseMove = (e) => {
+        const rect = container.getBoundingClientRect()
+        const mouseX = e.clientX - rect.left
+
+        letters.forEach((letter) => {
+            const letterRect = letter.getBoundingClientRect()
+            const center = letterRect.left - rect.left + letterRect.width / 2
+            const distance = Math.abs(mouseX - center)
+            const intensity = Math.exp(-(distance ** 2) / 10000)
+            const weight = min + (max - min) * intensity
+            animateWeight(letter, weight)
+        })
+    }
+
+    const handleMouseLeave = () => {
+        letters.forEach((l) => animateWeight(l, base))
+    }
+
+    container.addEventListener("mousemove", handleMouseMove)
+    container.addEventListener("mouseleave", handleMouseLeave)
+
+    // Cleanup function to remove listeners when unmounting
+    return () => {
+        container.removeEventListener("mousemove", handleMouseMove)
+        container.removeEventListener("mouseleave", handleMouseLeave)
+    }
+}
+
+const AnimatedText = ({ text, className = "" }) => {
+    return (
+        <div className={`flex flex-wrap justify-center space-x-2 ${className}`}>
+            {renderWordText(text, "inline-block transition-all duration-100 hover:scale-110 hover:text-gray-900")}
+        </div>
+    )
+}
+
+const Desktop = () => {
+    const titleRef = useRef(null)
+    const subtitleRef = useRef(null)
+
+    useGSAP(() => {
+        const cleanupTitle = setupTextHover(titleRef.current, "title")
+        const cleanupSubtitle = setupTextHover(subtitleRef.current, "subtitle")
+
+        return () => {
+            cleanupTitle && cleanupTitle()
+            cleanupSubtitle && cleanupSubtitle()
+        }
+    })
+
+    return (
+        <section
+            id="desktop"
+            className="flex flex-col justify-center items-center w-full h-full"
+        >
+            <h1 ref={titleRef} className='text-center'>
+                <AnimatedText
+                    text={"virtual MACOS Simulator"}
+                    className={"text-7xl sm:text-8xl md:text-9xl font-handmade space-x-10"}
+                />
+            </h1>
+            <p ref={subtitleRef} className="text-center px-4 mt-6 max-w-3xl mx-auto">
+                <AnimatedText
+                    text="Experience a realistic macOS environment directly in your browser with our fully web-based virtual simulator."
+                    className="text-2xl md:text-3xl font-georama font-extralight"
+                />
+            </p>
+        </section>
+    )
+}
+
+export default Desktop
+
+
+=== D:\virtual-macos-simulator\src\components\Dock.jsx ===
+import React, { useRef } from "react";
+import { Tooltip } from "react-tooltip";
+import { dockApps } from "../constants";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import useWindowStore from "@store/window";
+
+const Dock = () => {
+  const dockRef = useRef(null);
+  const { openWindow, windows } = useWindowStore();
+
+  useGSAP(() => {
+    const dock = dockRef.current;
+    if (!dock) return;
+
+    const icons = dock.querySelectorAll(".dock-icon");
+
+    const animateIcons = (mouseX) => {
+      const { left } = dock.getBoundingClientRect();
+      icons.forEach((icon) => {
+        const { left: iconLeft, width } = icon.getBoundingClientRect();
+        const center = iconLeft - left + width / 2;
+        const distance = Math.abs(mouseX - center);
+        
+        const intensity = Math.max(0, 1 - distance / 150);
+        const scale = 1 + 0.3 * Math.sin(intensity * Math.PI / 2);
+
+        gsap.to(icon, {
+          scale: scale,
+          y: -10 * intensity,
+          duration: 0.1,
+          overwrite: true,
+        });
+      });
+    };
+
+    const handleMouseMove = (e) => {
+      const { left } = dock.getBoundingClientRect();
+      animateIcons(e.clientX - left);
+    };
+
+    const resetIcons = () => {
+      icons.forEach((icon) => {
+        gsap.to(icon, {
+          scale: 1,
+          y: 0,
+          duration: 0.2,
+          overwrite: true,
+        });
+      });
+    };
+
+    dock.addEventListener("mousemove", handleMouseMove);
+    dock.addEventListener("mouseleave", resetIcons);
+
+    return () => {
+      dock.removeEventListener("mousemove", handleMouseMove);
+      dock.removeEventListener("mouseleave", resetIcons);
+    };
+  });
+
+  const toggleApp = (app) => {
+    if (!app.canOpen) return;
+    
+    // Add bounce animation
+    const btn = document.getElementById(`dock-btn-${app.id}`);
+    if (btn) {
+        gsap.to(btn, { y: -20, duration: 0.2, yoyo: true, repeat: 1 });
+    }
+
+    // Always use openWindow to handle opening, bringing to front, AND restoring from minimize
+    openWindow(app.id);
+  };
+
+  return (
+    <section id="dock" ref={dockRef} className="fixed bottom-4 left-1/2  flex justify-center z-[9999]">
+      <div className="dock-container px-4 pb-2 pt-3 bg-white/30 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-2xl flex gap-3 items-end h-auto transition-all">
+        {dockApps.map((app) => (
+          <button
+            id={`dock-btn-${app.id}`}
+            type="button"
+            key={app.id}
+            className="dock-icon group relative flex flex-col items-center justify-end w-12 sm:w-14 transition-all duration-100 origin-bottom"
+            aria-label={app.name}
+            data-tooltip-id="dock-tooltip"
+            data-tooltip-content={app.name}
+            onClick={() => toggleApp(app)}
+          >
+            <img
+              src={`/images/${app.icon}`}
+              alt={app.name}
+              className="w-full h-auto object-contain drop-shadow-md"
+            />
+            
+            <div
+              className={`absolute -bottom-1.5 w-1 h-1 rounded-full bg-gray-800 transition-all duration-300 ${
+                windows[app.id]?.isOpen ? "opacity-100 scale-100" : "opacity-0 scale-0"
+              }`}
+            />
+          </button>
+        ))}
+        <Tooltip id="dock-tooltip" place="top" className="!px-2 !py-1 !text-xs !bg-gray-800 !text-white !rounded shadow-lg z-[10000]" offset={15} />
+      </div>
+    </section>
+  );
+};
+
+export default Dock;
+
+=== D:\virtual-macos-simulator\src\components\index.js ===
+import Toolbar from './Toolbar';
+import Desktop from './Desktop';
+import Dock from './Dock';
+import WindowControls from './WindowControls';
+
+export { Toolbar, Desktop, Dock, WindowControls };
+
+
+=== D:\virtual-macos-simulator\src\components\Spotlight.jsx ===
+import React, { useState, useEffect, useRef } from "react";
+import useWindowStore from "@store/window";
+import { IoSearch } from "react-icons/io5";
+import { dockApps } from "@constants";
+
+const Spotlight = () => {
+  const { systemOverlay, toggleSystemOverlay, openWindow } = useWindowStore();
+  const [query, setQuery] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (systemOverlay.spotlight) {
+        setTimeout(() => inputRef.current?.focus(), 100);
+    } else {
+        setQuery("");
+    }
+  }, [systemOverlay.spotlight]);
+
+  const filteredApps = dockApps.filter(app => 
+    app.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const handleLaunch = (id) => {
+    openWindow(id);
+    toggleSystemOverlay('spotlight');
+  };
+
+  if (!systemOverlay.spotlight) return null;
+
+  return (
+    <div 
+        className="absolute inset-0 z-[10000] bg-black/20 backdrop-blur-[1px]"
+        onClick={() => toggleSystemOverlay('spotlight')}
+    >
+      <div 
+        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] bg-[#f5f5f7]/80 backdrop-blur-2xl rounded-xl shadow-2xl border border-white/40 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-300/50">
+          <IoSearch className="text-xl text-gray-500" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Spotlight Search"
+            className="flex-1 bg-transparent outline-none text-xl text-gray-800 placeholder:text-gray-400"
+          />
+        </div>
+        
+        {query && (
+          <div className="max-h-[400px] overflow-y-auto py-2">
+            {filteredApps.length > 0 ? (
+                <>
+                <div className="px-4 py-1 text-xs font-semibold text-gray-500 uppercase">Applications</div>
+                {filteredApps.map(app => (
+                <button
+                    key={app.id}
+                    onClick={() => handleLaunch(app.id)}
+                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-blue-500 hover:text-white transition-colors group"
+                >
+                    <img src={`/images/${app.icon}`} className="w-6 h-6" alt="" />
+                    <span className="text-sm font-medium">{app.name}</span>
+                    <span className="ml-auto text-xs opacity-0 group-hover:opacity-100">Open</span>
+                </button>
+                ))}
+                </>
+            ) : (
+                <div className="px-4 py-4 text-center text-gray-500">No results found</div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Spotlight;
+
+=== D:\virtual-macos-simulator\src\components\Toolbar.jsx ===
+import React, { useState, useEffect } from "react";
+import dayjs from "dayjs";
+import { navLinks, navIcons } from "../constants/index";
+import { IoLogoApple } from "react-icons/io5";
+import { GoDotFill } from "react-icons/go";
+
+const Toolbar = () => {
+  const [time, setTime] = useState(dayjs());
+  const [activeLink, setActiveLink] = useState(navLinks[0]?.id);
+
+  // clock update
+  useEffect(() => {
+    const interval = setInterval(() => setTime(dayjs()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <nav className="w-full fixed top-0 left-0 z-50 backdrop-blur-xl bg-white/30 shadow-md px-6 py-1 flex items-center justify-between transition-all duration-300">
+      {/* Left section */}
+      <div className="flex items-center gap-8">
+        {/* Logo */}
+        <span className="flex items-center gap-2 font-xirstark text-gray-900 text-lg sm:text-xl pt-2.5">
+          <IoLogoApple className="w-6 h-6 -mt-3" />
+          Virtual macOS
+        </span>
+
+        {/* Desktop Navigation */}
+        <ul className="hidden md:flex items-center gap-4">
+          {navLinks.map((item) => {
+            const isActive = activeLink === item.id;
+            return (
+              <li
+                key={item.id}
+                onClick={() => setActiveLink(item.id)}
+                className={`font-recoleta flex items-center gap-1 capitalize cursor-pointer relative transition-all duration-200 group ${isActive
+                  ? "text-black font-semibold"
+                  : "text-gray-900 hover:text-black"
+                  }`}
+              >
+                <GoDotFill
+                  className={`w-2 h-2 opacity-70 transition-all duration-200 ${isActive ? "text-black rotate-90 block" : "rotate-0 hidden"
+                    }`}
+                />
+                {item.name}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {/* Right section */}
+      <div className="flex items-center gap-5">
+        {/* Desktop Icons */}
+        <ul className="hidden md:flex items-center gap-4">
+          {navIcons.map((icon) => (
+            <li key={icon.id}>
+              <img
+                src={icon.img}
+                alt={icon.name}
+                className="w-4 h-4 opacity-70 hover:opacity-100 transition transform hover:scale-110 cursor-pointer"
+              />
+            </li>
+          ))}
+        </ul>
+
+        {/* Desktop Badge with Features */}
+        <div className="hidden md:flex items-center gap-3 bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-mono text-sm">
+          <span>{time.format("ddd MMM D h:mm:ss A")}</span>
+        </div>
+      </div>
+      <span className="block md:hidden px-2 py-0.5 bg-[#ff000077] text-white rounded-full text-xs">
+        Features Unavailable
+      </span>
+    </nav>
+  );
+};
+
+export default Toolbar;
+
+
+=== D:\virtual-macos-simulator\src\components\WindowControls.jsx ===
+import React from "react";
+import useWindowStore from "@store/window";
+
+const WindowControls = ({ target, className = "" }) => {
+  const { closeWindow, minimizeWindow, toggleMaximizeWindow } = useWindowStore();
+
+  return (
+    <div className={`h-10 flex items-center gap-3 px-3 py-2 bg-transparent w-full ${className}`}>
+      <div className="flex items-center gap-2 group">
+        <button
+          className="flex items-center justify-center w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e] hover:bg-[#ff5f57]/80 text-[8px] text-black/50 opacity-100 transition-all"
+          onClick={(e) => { e.stopPropagation(); closeWindow(target); }}
+        >
+          <span className="opacity-0 group-hover:opacity-100">✕</span>
+        </button>
+        <button
+          className="flex items-center justify-center w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] hover:bg-[#ffbd2e]/80 text-[8px] text-black/50 opacity-100 transition-all"
+          onClick={(e) => { e.stopPropagation(); minimizeWindow(target); }}
+        >
+          <span className="opacity-0 group-hover:opacity-100">−</span>
+        </button>
+        <button
+          className="flex items-center justify-center w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] hover:bg-[#27c93f]/80 text-[6px] text-black/50 opacity-100 transition-all"
+          onClick={(e) => { e.stopPropagation(); toggleMaximizeWindow(target); }}
+        >
+          <span className="opacity-0 group-hover:opacity-100">sw</span>
+        </button>
+      </div>
+      <div className="ml-2 text-sm font-medium text-gray-700 select-none flex-1 text-center capitalize">
+          {target}
+      </div>
+      <div className="w-12"></div>
+    </div>
+  );
+};
+
+export default WindowControls;
+
+=== D:\virtual-macos-simulator\src\constants\index.js ===
+export const navLinks = [
+  { id: "file", name: "File" },
+  { id: "edit", name: "Edit" },
+  { id: "view", name: "View" },
+  { id: "go", name: "Go" },
+  { id: "window", name: "Window" },
+  { id: "help", name: "Help" },
+];
+
+export const navIcons = [
+  { id: 1, img: "/icons/wifi.svg", name: "Wifi" },
+  { id: 2, img: "/icons/search.svg", name: "Search" },
+  { id: 3, img: "/icons/user.svg", name: "Control Center" },
+  { id: 4, img: "/icons/mode.svg", name: "Siri" },
+];
+
+export const dockApps = [
+  { id: "finder", name: "Finder", icon: "finder.png", canOpen: true },
+  { id: "safari", name: "Safari", icon: "safari.png", canOpen: true },
+  { id: "photos", name: "Photos", icon: "photos.png", canOpen: true },
+  { id: "contact", name: "Contact", icon: "contact.png", canOpen: true },
+  { id: "terminal", name: "Terminal", icon: "terminal.png", canOpen: true },
+  { id: "calculator", name: "Calculator", icon: "calculator.png", canOpen: true },
+  { id: "trash", name: "Trash", icon: "trash.png", canOpen: true },
+];
+
+// Generic Tech/OS News for Safari
+export const blogPosts = [
+  {
+    id: 1,
+    title: "macOS Simulator v1.0 Release",
+    desc: "Experience the web-based operating system simulator with enhanced performance and UI.",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80",
+    date: "Today",
+  },
+  {
+    id: 2,
+    title: "WebAssembly & The Future",
+    desc: "How modern web technologies are enabling desktop-class applications in the browser.",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1555099962-4199c345e5dd?auto=format&fit=crop&w=800&q=80",
+    date: "Yesterday",
+  },
+  {
+    id: 3,
+    title: "Tips for Productivity",
+    desc: "Mastering keyboard shortcuts and window management in your virtual environment.",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80",
+    date: "2 days ago",
+  },
+];
+
+export const techStack = [
+  { category: "Core", items: ["React 19", "Vite", "Zustand"] },
+  { category: "Styling", items: ["Tailwind CSS", "GSAP Animations"] },
+  { category: "System", items: ["Web Filesystem API (Mock)", "Local Storage"] },
+];
+
+// Generic mock contacts
+export const contactsList = [
+  { id: 1, name: "Apple Support", role: "Technical Support", email: "support@apple.com", avatar: "🍎", bg: "#f5f5f7" },
+  { id: 2, name: "Tim Cook (Mock)", role: "CEO", email: "tcook@apple.com", avatar: "TC", bg: "#007aff" },
+  { id: 3, name: "Craig Federighi", role: "Software Engineering", email: "hairforce1@apple.com", avatar: "CF", bg: "#5856d6" },
+  { id: 4, name: "Design Team", role: "Human Interface", email: "design@apple.com", avatar: "🎨", bg: "#ff2d55" },
+];
+
+export const photosLinks = [
+  { id: "library", name: "Library", icon: "/icons/gallery.svg" },
+  { id: "memories", name: "Memories", icon: "/icons/memories.svg" },
+  { id: "people", name: "People", icon: "/icons/people.svg" },
+  { id: "places", name: "Places", icon: "/icons/location.svg" },
+  { id: "recents", name: "Recents", icon: "/icons/clock.svg" },
+];
+
+export const gallery = [
+  { id: 1, src: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80" },
+  { id: 2, src: "https://images.unsplash.com/photo-1555099962-4199c345e5dd?auto=format&fit=crop&w=800&q=80" },
+  { id: 3, src: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80" },
+  { id: 4, src: "https://images.unsplash.com/photo-1550439062-609e1531270e?auto=format&fit=crop&w=800&q=80" },
+  { id: 5, src: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=800&q=80" },
+  { id: 6, src: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=800&q=80" },
+  { id: 7, src: "https://images.unsplash.com/photo-1534665482403-a909d0d97c67?auto=format&fit=crop&w=800&q=80" },
+  { id: 8, src: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80" },
+];
+
+export const INITIAL_Z_INDEX = 1000;
+
+export const WINDOW_CONFIG = {
+  finder: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  contact: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  resume: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null }, 
+  safari: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  photos: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  terminal: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  calculator: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  trash: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  txtfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+  imgfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
+};
+
+=== D:\virtual-macos-simulator\src\hoc\WindowWrapper.jsx ===
+import React, { useRef, useState, useLayoutEffect } from "react";
+import useWindowStore from "@store/window";
+import { WindowControls } from "@components";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+
+const WindowWrapper = (Component, windowKey) => {
+  const Wrapped = (props) => {
+    const ref = useRef(null);
+    const { focusWindow, windows } = useWindowStore();
+    const windowState = windows[windowKey] || { isOpen: false, zIndex: 0 };
+    
+    const [drag, setDrag] = useState({ x: 0, y: 0 });
+    const [isMounted, setIsMounted] = useState(false);
+
+    const posRef = useRef({ x: 0, y: 0 });
+    const mouseRef = useRef({ x: 0, y: 0 });
+
+    // Initial Random Placement
+    useLayoutEffect(() => {
+        if (windowState.isOpen && !isMounted) {
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+            const targetWidth = Math.min(winWidth * 0.6, 900); 
+            const targetHeight = Math.min(winHeight * 0.6, 650);
+            
+            setDrag({
+                x: (winWidth - targetWidth) / 2 + (Math.random() * 40 - 20),
+                y: (winHeight - targetHeight) / 2 + (Math.random() * 40 - 20)
+            });
+            setIsMounted(true);
+        }
+    }, [windowState.isOpen, isMounted]);
+
+    // GSAP Animations
+    useGSAP(() => {
+        if (!ref.current) return;
+
+        // Opening Animation
+        if (windowState.isOpen && !windowState.isMinimized) {
+            gsap.to(ref.current, { 
+                scale: 1, 
+                opacity: 1, 
+                y: 0, 
+                duration: 0.3, 
+                ease: "back.out(1.2)" 
+            });
+        }
+        
+        // Minimizing Animation
+        if (windowState.isMinimized) {
+            const winHeight = window.innerHeight;
+            gsap.to(ref.current, {
+                scale: 0,
+                opacity: 0,
+                y: winHeight / 2, // Move towards dock
+                duration: 0.4,
+                ease: "power3.in"
+            });
+        }
+    }, [windowState.isOpen, windowState.isMinimized]);
+
+    // ----- DRAG LOGIC -----
+    const handleMouseDown = (e) => {
+      if (windowState.isMaximized) return; // Disable drag if maximized
+      focusWindow(windowKey);
+      
+      if (!e.target.closest(".window-drag-area")) return;
+      
+      posRef.current = { x: drag.x, y: drag.y };
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    };
+
+    const handleMouseMove = (e) => {
+      const dx = e.clientX - mouseRef.current.x;
+      const dy = e.clientY - mouseRef.current.y;
+      
+      let newX = posRef.current.x + dx;
+      let newY = posRef.current.y + dy;
+
+      // Constraints
+      const toolbarHeight = 32;
+      if (newY < toolbarHeight) newY = toolbarHeight; 
+      const screenWidth = window.innerWidth;
+      // Prevent dragging completely off-screen
+      if (newX < -300) newX = -300; 
+      if (newX > screenWidth - 100) newX = screenWidth - 100;
+
+      setDrag({ x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    if (!windowState.isOpen) return null;
+
+    // Dynamic Styles for Maximize
+    const layoutStyle = windowState.isMaximized 
+    ? {
+        top: "32px",
+        left: 0,
+        width: "100%",
+        height: "calc(100vh - 100px)", // Leave room for Dock
+        transform: "none",
+        borderRadius: 0
+    }
+    : {
+        transform: `translate(${drag.x}px, ${drag.y}px)`,
+        width: "60vw",
+        height: "65vh",
+        borderRadius: "0.75rem"
+    };
+
+    return (
+      <section
+        id={windowKey}
+        ref={ref}
+        onMouseDown={(e) => {
+             focusWindow(windowKey);
+             handleMouseDown(e);
+        }}
+        style={{
+          zIndex: windowState.zIndex,
+          position: "fixed",
+          minWidth: "350px",
+          minHeight: "250px",
+          ...layoutStyle
+        }}
+        className={`flex flex-col bg-[#f5f5f7]/95 backdrop-blur-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] border border-white/20 select-none overflow-hidden transition-all duration-200 ${windowState.isMinimized ? 'pointer-events-none' : ''}`}
+      >
+        <WindowControls target={windowKey} className="window-drag-area shrink-0 z-50 cursor-grab active:cursor-grabbing border-b border-gray-300/50" />
+        <div className="flex-1 overflow-hidden relative bg-white">
+             <Component {...props} />
+        </div>
+      </section>
+    );
+  };
+  
+  Wrapped.displayName = `WindowWrapper(${windowKey})`;
+  return Wrapped;
+};
+
+export default WindowWrapper;
+
+=== D:\virtual-macos-simulator\src\index.css ===
+@import url("https://fonts.googleapis.com/css2?family=Georama:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap");
+@import "tailwindcss";
+
+
+html,
+body {
+  width: 100dvw;
+  overflow: hidden;
+  height: 100dvh;
+  background-image: url("/images/wallpaper.webp");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('/fonts/Recoleta.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Whimsy';
+  src: url('/fonts/Whimsy Bittersweet Demo.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Handmade';
+  src: url('/fonts/Simple Handmade.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Xirstark';
+  src: url('/fonts/Xirstark Demo.otf') format('opentype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@theme {
+  --font-recoleta: "Recoleta", sans-serif;
+  --font-whimsy: "Whimsy", sans-serif;
+  --font-xirstark: "Xirstark", sans-serif;
+  --font-handmade: "Handmade", sans-serif;
+  --font-georama: "Georama", sans-serif;
+  --font-roboto: "Roboto Mono", monospace;
+  --breakpoint-3xl: 1920px;
+}
+
+@utility flex-center {
+  @apply flex items-center justify-center;
+}
+
+@utility col-center {
+  @apply flex flex-col items-center justify-center;
+}
+
+@utility abs-center {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+}
+
+@layer base {
+  main {
+    @apply w-dvw h-dvh overflow-hidden;
+  }
+
+  nav {
+    @apply flex justify-between items-center p-2 px-5 select-none;
+
+    div {
+      @apply flex items-center max-sm:w-full max-sm:justify-center gap-5;
+
+      &:last-child {
+        @apply max-sm:hidden;
+      }
+    }
+
+    ul {
+      @apply flex items-center gap-5 max-sm:hidden;
+
+      p {
+        @apply text-sm cursor-pointer hover:underline transition-all;
+      }
+    }
+
+    time {
+      @apply text-sm font-medium text-black;
+    }
+  }
+}
+
+@layer components {
+  .icon {
+    @apply p-1 hover:bg-gray-200 rounded hover:cursor-default;
+  }
+
+  #welcome {
+    @apply text-gray-200 flex flex-col justify-center items-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none max-sm:h-screen max-sm:w-full max-sm:px-10;
+
+    .small-screen {
+      @apply sm:hidden m-7 bg-red-300/20 backdrop-blur-lg p-3 rounded-md absolute top-10;
+
+      p {
+        @apply flex-1 text-[16px] text-center font-roboto text-gray-400;
+      }
+    }
+  }
+
+  #dock {
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 z-50 select-none max-sm:hidden;
+
+    .dock-container {
+      @apply bg-white/20 backdrop-blur-md justify-between rounded-2xl p-1.5 flex items-end;
+    }
+
+    .tooltip {
+      @apply !py-1 !px-3 !w-fit !text-center !text-xs !rounded-md !bg-blue-200 !text-blue-900 !shadow-2xl;
+    }
+
+    .dock-icon {
+      @apply size-14 3xl:size-20 cursor-pointer;
+
+      img {
+        @apply object-cover object-center;
+      }
+    }
+  }
+
+  #window-controls {
+    @apply flex gap-2;
+
+    .close {
+      @apply size-3.5 rounded-full bg-[#ff6157] cursor-pointer;
+    }
+
+    .minimize {
+      @apply size-3.5 rounded-full bg-[#ffc030];
+    }
+
+    .maximize {
+      @apply size-3.5 rounded-full bg-[#2acb42];
+    }
+  }
+
+  #window-header {
+    @apply flex items-center justify-between px-4 py-3 rounded-t-lg bg-gray-50 border-b border-gray-200 select-none text-sm text-gray-400;
+  }
+
+  #safari {
+    @apply w-4xl absolute top-40 left-2/12 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
+
+    .search {
+      @apply flex items-center gap-3 w-2/3 bg-white border border-gray-300 rounded-lg px-3 py-2;
+
+      input {
+        @apply placeholder:text-gray-400;
+      }
+    }
+
+    .blog {
+      @apply bg-white p-10 max-w-3xl mx-auto;
+
+      h2 {
+        @apply text-xl font-bold text-pink-600 mb-10;
+      }
+
+      .blog-post {
+        @apply grid grid-cols-12 space-x-5;
+
+        img {
+          @apply size-full rounded-md object-cover;
+        }
+
+        .content {
+          @apply col-span-10 space-y-3;
+
+          p {
+            @apply text-xs text-gray-500;
+          }
+
+          h3 {
+            @apply font-semibold text-base text-gray-800;
+          }
+
+          a {
+            @apply text-blue-600 text-xs hover:underline flex items-center gap-3;
+          }
+        }
+      }
+    }
+  }
+
+  #terminal {
+    @apply w-xl absolute top-32 left-1/12 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
+
+    h2 {
+      @apply font-bold text-sm text-center w-full;
+    }
+
+    .techstack {
+      @apply text-sm font-roboto p-5;
+
+      .label {
+        @apply flex items-center ms-10 mt-7;
+      }
+
+      .content {
+        @apply py-5 my-5 border-y border-dashed space-y-1;
+
+        li {
+          .check {
+            @apply text-[#00A154] w-5;
+          }
+
+          h3 {
+            @apply font-semibold text-[#00A154] w-32 ms-5;
+          }
+
+          ul {
+            @apply flex items-center gap-3;
+          }
+        }
+      }
+
+      .footnote {
+        @apply text-[#00A154] space-y-1;
+
+        p {
+          @apply flex items-center;
+
+          svg {
+            @apply w-5 me-5;
+          }
+        }
+      }
+    }
+  }
+
+  #contact {
+    @apply max-w-2xl absolute top-60 left-5/12 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
+
+    h2 {
+      @apply font-bold text-sm text-center w-full;
+    }
+
+    h3 {
+      @apply text-xl font-semibold;
+    }
+
+    ul {
+      @apply flex items-center gap-3;
+
+      li {
+        @apply rounded-lg p-3 w-60 hover:-translate-y-0.5 hover:scale-105 origin-center transition-all duration-300;
+
+        a {
+          @apply space-y-5;
+        }
+
+        p {
+          @apply font-semibold text-sm text-white;
+        }
+      }
+    }
+  }
+
+  #photos {
+    @apply max-w-3xl absolute top-96 left-1/2 -translate-y-1/2 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
+
+    .sidebar {
+      @apply w-3/12 flex-none bg-gray-50 border-r border-gray-200 flex flex-col p-5;
+
+      h2 {
+        @apply text-xs font-medium text-gray-400 mb-1;
+      }
+
+      ul {
+        li {
+          @apply flex space-y-1 items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors;
+
+          &:first-child {
+            @apply bg-blue-100 text-blue-700;
+          }
+
+          img {
+            @apply w-4;
+          }
+
+          p {
+            @apply text-sm font-medium;
+          }
+        }
+      }
+    }
+
+    .gallery {
+      @apply p-5;
+
+      ul {
+        @apply grid grid-cols-5 grid-rows-5 gap-2.5;
+
+        li {
+          img {
+            @apply size-full object-cover rounded-lg;
+          }
+
+          &:first-child {
+            @apply row-start-1 row-span-3 col-start-1 col-span-3;
+          }
+
+          &:nth-child(2) {
+            @apply row-start-1 row-span-3 col-start-4 col-span-2;
+          }
+
+          &:nth-child(3) {
+            @apply row-start-4 row-span-2 col-start-3 col-span-3;
+          }
+
+          &:last-child {
+            @apply row-start-4 row-span-2 col-start-1 col-span-2;
+          }
+        }
+      }
+    }
+  }
+
+  #resume {
+    @apply w-fit h-fit absolute top-16 left-7/12 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
+
+    #window-header {
+      h2 {
+        @apply font-bold text-sm text-center flex-1;
+      }
+    }
+  }
+
+  #finder {
+    @apply absolute w-3xl left-40 top-20 shadow-2xl drop-shadow-2xl overflow-hidden rounded-xl;
+
+    .sidebar {
+      @apply w-48 bg-gray-50 border-r border-gray-200 flex flex-col p-5 space-y-3;
+
+      h3 {
+        @apply text-xs font-medium text-gray-400 mb-1;
+      }
+
+      ul {
+        @apply space-y-1;
+
+        .active {
+          @apply bg-blue-100 text-blue-700;
+        }
+
+        .not-active {
+          @apply text-gray-700 hover:bg-gray-200;
+        }
+
+        li {
+          @apply flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors;
+        }
+      }
+    }
+
+    .content {
+      @apply flex-1 p-8 bg-white max-w-2xl relative;
+
+      li {
+        @apply absolute flex items-center flex-col gap-3;
+
+        img {
+          @apply object-contain object-center size-16 relative group-hover:scale-105;
+        }
+
+        p {
+          @apply text-sm text-center font-medium w-40;
+        }
+      }
+    }
+  }
+
+  #txtfile {
+    @apply w-md absolute top-36 right-32 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
+
+    h2 {
+      @apply font-bold text-sm text-center w-full;
+    }
+  }
+
+  #imgfile {
+    @apply w-xl absolute top-40 left-2/12 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
+
+    #window-header {
+      p {
+        @apply font-bold text-[#5f6266];
+      }
+    }
+
+    .preview {
+      @apply p-2 bg-gray-200 max-h-[70vh];
+
+      img {
+        @apply w-full h-fit object-contain object-center;
+      }
+    }
+  }
+
+  #home {
+    @apply relative z-0 max-sm:hidden;
+
+    ul {
+      li {
+        @apply absolute z-0 select-none flex items-center flex-col;
+
+        img {
+          @apply group-hover:bg-gray-950/10 p-1 rounded-md;
+        }
+
+        p {
+          @apply text-sm text-white text-center px-1 rounded-md group-hover:bg-blue-500 transition-colors max-w-40;
+        }
+      }
+    }
+  }
+}
+
+/* Enhanced Window Styles */
+.window {
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 8px 24px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Selection styles */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: inherit;
+}
+
+/* File/folder hover effects */
+.file-item:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.folder-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Window animations */
+@keyframes windowOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.window-open {
+  animation: windowOpen 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Loading shimmer effect */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+=== D:\virtual-macos-simulator\src\main.jsx ===
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+
+=== D:\virtual-macos-simulator\src\store\window.js ===
+import { create } from "zustand";
+import { produce } from "immer";
+import { INITIAL_Z_INDEX, WINDOW_CONFIG } from "@constants";
+
+const useWindowStore = create((set) => ({
+  windows: WINDOW_CONFIG,
+  nextZIndex: INITIAL_Z_INDEX + 1,
+  
+  // System UI State
+  systemOverlay: {
+    appleMenu: false,
+    controlCenter: false,
+    spotlight: false,
+    calendar: false,
+  },
+
+  toggleSystemOverlay: (key) => {
+    set(produce((state) => {
+      const targetState = !state.systemOverlay[key];
+      // Close all others
+      Object.keys(state.systemOverlay).forEach(k => state.systemOverlay[k] = false);
+      state.systemOverlay[key] = targetState;
+    }));
+  },
+
+  closeAllOverlays: () => {
+    set(produce((state) => {
+      Object.keys(state.systemOverlay).forEach(k => state.systemOverlay[k] = false);
+    }));
+  },
+
+  openWindow: (windowKey, data = null) => {
+    set(produce((state) => {
+      const win = state.windows[windowKey];
+      if (win) {
+        // If minimized, restore it
+        if (win.isMinimized) {
+          win.isMinimized = false;
+        }
+        win.isOpen = true;
+        win.zIndex = state.nextZIndex++;
+        if (data) win.data = data;
+        state.systemOverlay.spotlight = false;
+      }
+    }));
+  },
+
+  closeWindow: (windowKey) => {
+    set(produce((state) => {
+      const win = state.windows[windowKey];
+      if (win) {
+        win.isOpen = false;
+        win.isMinimized = false;
+        win.isMaximized = false;
+        win.zIndex = INITIAL_Z_INDEX;
+        win.data = null;
+      }
+    }));
+  },
+
+  minimizeWindow: (windowKey) => {
+    set(produce((state) => {
+      const win = state.windows[windowKey];
+      if (win) win.isMinimized = true;
+    }));
+  },
+
+  toggleMaximizeWindow: (windowKey) => {
+    set(produce((state) => {
+      const win = state.windows[windowKey];
+      if (win) {
+          win.isMaximized = !win.isMaximized;
+          win.zIndex = state.nextZIndex++;
+      }
+    }));
+  },
+
+  focusWindow: (windowKey) => {
+    set(produce((state) => {
+      const win = state.windows[windowKey];
+      if (win && win.isOpen) {
+        win.zIndex = state.nextZIndex++;
+        // If focused via click, restore if minimized
+        win.isMinimized = false; 
+      }
+    }));
+  },
+}));
+
+export default useWindowStore;
+
+=== D:\virtual-macos-simulator\src\windows\Calculator.jsx ===
+import React, { useState } from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+
+const Calculator = () => {
+  const [display, setDisplay] = useState("0");
+  const [prev, setPrev] = useState(null);
+  const [op, setOp] = useState(null);
+  const [newNumber, setNewNumber] = useState(true);
+
+  const handleNum = (num) => {
+    if (newNumber) {
+      setDisplay(num.toString());
+      setNewNumber(false);
+    } else {
+      setDisplay(display === "0" ? num.toString() : display + num);
+    }
+  };
+
+  const handleOp = (operator) => {
+    setOp(operator);
+    setPrev(parseFloat(display));
+    setNewNumber(true);
+  };
+
+  const calculate = () => {
+    if (prev === null || op === null) return;
+    const current = parseFloat(display);
+    let result = 0;
+    switch (op) {
+      case "+": result = prev + current; break;
+      case "-": result = prev - current; break;
+      case "×": result = prev * current; break;
+      case "÷": result = prev / current; break;
+    }
+    setDisplay(result.toString());
+    setPrev(null);
+    setOp(null);
+    setNewNumber(true);
+  };
+
+  const clear = () => {
+    setDisplay("0");
+    setPrev(null);
+    setOp(null);
+    setNewNumber(true);
+  };
+
+  const btnClass = "h-12 w-12 rounded-full font-medium text-lg transition-colors active:scale-95 flex items-center justify-center select-none";
+  const grayBtn = "bg-gray-300 text-black hover:bg-gray-400";
+  const orangeBtn = "bg-orange-500 text-white hover:bg-orange-600";
+  const darkBtn = "bg-gray-700 text-white hover:bg-gray-600";
+
+  return (
+    <div className="flex flex-col h-full bg-black p-4 items-center justify-center">
+      <div className="w-full text-right text-white text-5xl font-light mb-4 px-2 truncate">
+        {display}
+      </div>
+      <div className="grid grid-cols-4 gap-3">
+        <button onClick={clear} className={`${btnClass} ${grayBtn}`}>AC</button>
+        <button onClick={() => setDisplay((parseFloat(display) * -1).toString())} className={`${btnClass} ${grayBtn}`}>+/-</button>
+        <button onClick={() => setDisplay((parseFloat(display) / 100).toString())} className={`${btnClass} ${grayBtn}`}>%</button>
+        <button onClick={() => handleOp("÷")} className={`${btnClass} ${orangeBtn}`}>÷</button>
+
+        {[7, 8, 9].map(n => <button key={n} onClick={() => handleNum(n)} className={`${btnClass} ${darkBtn}`}>{n}</button>)}
+        <button onClick={() => handleOp("×")} className={`${btnClass} ${orangeBtn}`}>×</button>
+
+        {[4, 5, 6].map(n => <button key={n} onClick={() => handleNum(n)} className={`${btnClass} ${darkBtn}`}>{n}</button>)}
+        <button onClick={() => handleOp("-")} className={`${btnClass} ${orangeBtn}`}>-</button>
+
+        {[1, 2, 3].map(n => <button key={n} onClick={() => handleNum(n)} className={`${btnClass} ${darkBtn}`}>{n}</button>)}
+        <button onClick={() => handleOp("+")} className={`${btnClass} ${orangeBtn}`}>+</button>
+
+        <button onClick={() => handleNum(0)} className={`${btnClass} ${darkBtn} col-span-2 w-auto rounded-2xl`}>0</button>
+        <button onClick={() => setDisplay(display + ".")} className={`${btnClass} ${darkBtn}`}>.</button>
+        <button onClick={calculate} className={`${btnClass} ${orangeBtn}`}>=</button>
+      </div>
+    </div>
+  );
+};
+
+export default WindowWrapper(Calculator, "calculator");
+
+=== D:\virtual-macos-simulator\src\windows\Contact.jsx ===
+import React, { useState } from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+import { contactsList } from "@constants";
+import { IoSearch, IoAdd } from "react-icons/io5";
+
+const Contact = () => {
+  const [selectedId, setSelectedId] = useState(1);
+  const selectedContact = contactsList.find(c => c.id === selectedId) || contactsList[0];
+
+  return (
+    <div className="flex h-full bg-white text-gray-800">
+      {/* Sidebar List */}
+      <div className="w-1/3 border-r border-gray-200 flex flex-col bg-gray-50/50">
+        <div className="h-12 border-b border-gray-200 flex items-center px-3 gap-2">
+            <div className="relative flex-1">
+                <IoSearch className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input 
+                    type="text" 
+                    placeholder="Search" 
+                    className="w-full bg-gray-200 rounded pl-7 pr-2 py-1 text-sm outline-none focus:ring-1 ring-blue-500"
+                />
+            </div>
+            <button className="text-gray-500 hover:text-black"><IoAdd size={20} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+            {contactsList.map(contact => (
+                <div 
+                    key={contact.id}
+                    onClick={() => setSelectedId(contact.id)}
+                    className={`flex items-center gap-3 p-3 cursor-pointer border-b border-gray-100 ${selectedId === contact.id ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                >
+                    <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                        style={{ backgroundColor: contact.bg, color: '#fff' }}
+                    >
+                        {contact.avatar}
+                    </div>
+                    <div className="flex-col flex">
+                        <span className="font-semibold text-sm">{contact.name}</span>
+                    </div>
+                </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Main Details View */}
+      <div className="flex-1 p-8 flex flex-col items-center pt-20">
+         <div 
+            className="w-24 h-24 rounded-full flex items-center justify-center text-4xl shadow-lg mb-4"
+            style={{ backgroundColor: selectedContact.bg, color: '#fff' }}
+         >
+            {selectedContact.avatar}
+         </div>
+         <h2 className="text-2xl font-bold text-gray-900">{selectedContact.name}</h2>
+         <p className="text-gray-500 mb-6">{selectedContact.role}</p>
+         
+         <div className="w-full max-w-sm space-y-4">
+             <div className="flex justify-between border-b border-gray-100 pb-2">
+                 <span className="text-gray-400 text-sm">home</span>
+                 <a href={`mailto:${selectedContact.email}`} className="text-blue-500 hover:underline">{selectedContact.email}</a>
+             </div>
+             <div className="flex justify-between border-b border-gray-100 pb-2">
+                 <span className="text-gray-400 text-sm">mobile</span>
+                 <span className="text-gray-800">+1 (555) 123-4567</span>
+             </div>
+             <div className="flex justify-between pb-2">
+                 <span className="text-gray-400 text-sm">notes</span>
+                 <span className="text-gray-600 text-sm">Simulator Mock Data</span>
+             </div>
+         </div>
+         
+         <div className="mt-8 flex gap-6">
+             <button className="flex flex-col items-center gap-1 text-blue-500 hover:opacity-80">
+                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">💬</div>
+                 <span className="text-xs">message</span>
+             </button>
+             <button className="flex flex-col items-center gap-1 text-blue-500 hover:opacity-80">
+                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">📞</div>
+                 <span className="text-xs">call</span>
+             </button>
+             <button className="flex flex-col items-center gap-1 text-blue-500 hover:opacity-80">
+                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">📹</div>
+                 <span className="text-xs">video</span>
+             </button>
+             <button className="flex flex-col items-center gap-1 text-blue-500 hover:opacity-80">
+                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">✉️</div>
+                 <span className="text-xs">mail</span>
+             </button>
+         </div>
+      </div>
+    </div>
+  );
+};
+
+const ContactWindow = WindowWrapper(Contact, "contact");
+export default ContactWindow;
+
+=== D:\virtual-macos-simulator\src\windows\Finder.jsx ===
+import React, { useState } from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+import useWindowStore from "@store/window";
+import { 
+  IoChevronBack, IoChevronForward, IoSearchOutline, IoGridOutline, IoListOutline 
+} from "react-icons/io5";
+
+// Generic File System Data
+const FILE_SYSTEM = {
+  "Recents": [
+    { id: 10, name: "Sunset.jpg", type: "img", size: "892 KB", modified: "Today" },
+    { id: 7, name: "Getting_Started.pdf", type: "pdf", size: "1.2 MB", modified: "Yesterday" },
+  ],
+  "Desktop": [
+    { id: 5, name: "Project_Assets", type: "folder", size: "--", modified: "Today" },
+    { id: 1, name: "Wallpaper.jpg", type: "img", size: "2.4 MB", modified: "Yesterday" },
+    { id: 90, name: "Notes.txt", type: "txt", size: "1 KB", modified: "Today" }
+  ],
+  "Documents": [
+    { id: 14, name: "System_Manual.pdf", type: "pdf", size: "1.2 MB", modified: "Apr 2" },
+    { id: 6, name: "Logs", type: "folder", size: "--", modified: "Apr 25" },
+    { id: 13, name: "Config.txt", type: "txt", size: "2 KB", modified: "Apr 5" },
+  ],
+  "Downloads": [
+    { id: 2, name: "Installer.dmg", type: "zip", size: "145 MB", modified: "May 12" },
+    { id: 88, name: "Archive.zip", type: "zip", size: "45 MB", modified: "May 10" },
+  ],
+  "Project_Assets": [
+    { id: 11, name: "Icon.png", type: "img", size: "12 KB", modified: "Apr 15" },
+    { id: 12, name: "Banner.jpg", type: "img", size: "3.5 MB", modified: "Apr 10" },
+  ],
+  "Logs": [
+    { id: 101, name: "error.log", type: "txt", size: "45 KB", modified: "Apr 5" },
+  ],
+  "Trash": [
+    { id: 99, name: "Untitled.txt", type: "txt", size: "0 KB", modified: "Jan 10" },
+  ]
+};
+
+const SIDEBAR_ITEMS = [
+  { group: "Favorites", items: ["Desktop", "Documents", "Downloads", "Recents"] },
+  { group: "Locations", items: ["iCloud Drive", "Trash"] }
+];
+
+const Finder = () => {
+  const { openWindow } = useWindowStore();
+  
+  // Navigation State
+  const [currentPath, setCurrentPath] = useState("Desktop");
+  const [history, setHistory] = useState(["Desktop"]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [viewMode, setViewMode] = useState("grid");
+
+  // Derive files from currentPath - no useEffect needed
+  const files = FILE_SYSTEM[currentPath] || [];
+
+  // Navigate Folder
+  const navigateTo = (folderName) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(folderName);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    setCurrentPath(folderName);
+    setSelectedFile(null); // Reset selection
+  };
+
+  const goBack = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setCurrentPath(history[newIndex]);
+      setSelectedFile(null);
+    }
+  };
+
+  const goForward = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setCurrentPath(history[newIndex]);
+      setSelectedFile(null);
+    }
+  };
+
+  const handleDoubleClick = (file) => {
+    if (file.type === 'folder') {
+      navigateTo(file.name);
+    } else if (file.type === 'img') {
+      openWindow("imgfile", {
+        imageUrl: `https://images.unsplash.com/photo-${1500000000000 + file.id}?auto=format&fit=crop&w=800&q=80`,
+        name: file.name
+      });
+    } else if (file.type === 'pdf') {
+      openWindow("resume", { fileName: file.name });
+    } else if (file.type === 'txt') {
+      openWindow("txtfile", { content: "This is a mock text file content for " + file.name });
+    }
+  };
+
+  const getFileIcon = (type) => {
+    switch(type) {
+      case 'folder': return "/images/folder.png";
+      case 'pdf': return "/images/pdf.png";
+      case 'img': return "/images/image.png";
+      case 'zip': return "/icons/file.svg"; 
+      case 'txt': return "/images/txt.png"; 
+      default: return "/icons/file.svg";
+    }
+  };
+
+  return (
+    <div className="flex h-full w-full bg-white text-sm font-sans select-none overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-[180px] flex-shrink-0 bg-[#f3f4f6] border-r border-gray-200 flex flex-col pt-4 backdrop-blur-xl">
+        {SIDEBAR_ITEMS.map((group, idx) => (
+          <div key={idx} className="mb-4">
+            <h3 className="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              {group.group}
+            </h3>
+            <ul className="space-y-0.5">
+              {group.items.map((item) => (
+                <li 
+                  key={item}
+                  onClick={() => navigateTo(item)}
+                  className={`flex items-center gap-2 px-4 py-1 cursor-pointer ${
+                    currentPath === item 
+                      ? 'bg-gray-300/60 rounded mx-2' 
+                      : 'hover:bg-gray-200/50 mx-2 rounded'
+                  }`}
+                >
+                  <span className="opacity-70 text-base">
+                     {item === "Trash" ? "🗑️" : "📁"}
+                  </span>
+                  <span className="text-[13px] text-gray-700">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 bg-white">
+        {/* Toolbar */}
+        <div className="h-12 border-b border-gray-200 flex items-center justify-between px-4 bg-[#fbfbfb]">
+          <div className="flex items-center gap-4">
+            <div className="flex gap-1">
+              <button onClick={goBack} disabled={historyIndex === 0} className="p-1 rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30">
+                <IoChevronBack size={18} />
+              </button>
+              <button onClick={goForward} disabled={historyIndex === history.length - 1} className="p-1 rounded text-gray-500 hover:bg-gray-200 disabled:opacity-30">
+                <IoChevronForward size={18} />
+              </button>
+            </div>
+            <span className="font-semibold text-gray-700">{currentPath}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <IoSearchOutline className="text-gray-400" size={18} />
+            <div className="bg-gray-200/50 rounded-md flex p-0.5">
+                <button onClick={() => setViewMode('grid')} className={`p-1 rounded ${viewMode === 'grid' ? 'bg-white shadow' : ''}`}><IoGridOutline /></button>
+                <button onClick={() => setViewMode('list')} className={`p-1 rounded ${viewMode === 'list' ? 'bg-white shadow' : ''}`}><IoListOutline /></button>
+            </div>
+          </div>
+        </div>
+
+        {/* File Area */}
+        <div className="flex-1 overflow-y-auto p-4" onClick={() => setSelectedFile(null)}>
+          {files.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-gray-400">
+              <span className="text-4xl opacity-20 mb-2">📂</span>
+              <p>Folder is empty</p>
+            </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-4 md:grid-cols-5 gap-4">
+              {files.map((file) => (
+                <div
+                  key={file.id}
+                  onClick={(e) => { e.stopPropagation(); setSelectedFile(file.id); }}
+                  onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(file); }}
+                  className={`flex flex-col items-center p-2 rounded-md border border-transparent ${
+                    selectedFile === file.id ? 'bg-blue-100 border-blue-200' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <img src={getFileIcon(file.type)} alt={file.type} className="w-16 h-16 object-contain drop-shadow-sm" />
+                  <span className={`text-xs mt-2 text-center w-full truncate px-1 ${selectedFile === file.id ? 'bg-blue-500 text-white rounded px-2' : 'text-gray-700'}`}>
+                    {file.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col">
+                 <div className="grid grid-cols-12 border-b border-gray-100 pb-2 text-xs text-gray-400">
+                    <span className="col-span-6 pl-2">Name</span>
+                    <span className="col-span-3">Date Modified</span>
+                    <span className="col-span-3">Size</span>
+                 </div>
+                 {files.map((file) => (
+                    <div 
+                        key={file.id}
+                        onClick={(e) => { e.stopPropagation(); setSelectedFile(file.id); }}
+                        onDoubleClick={(e) => { e.stopPropagation(); handleDoubleClick(file); }}
+                        className={`grid grid-cols-12 py-1 items-center cursor-default ${
+                            selectedFile === file.id ? 'bg-blue-500 text-white' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                    >
+                        <div className="col-span-6 flex items-center gap-2 pl-2">
+                             <img src={getFileIcon(file.type)} className="w-4 h-4" />
+                             <span className="text-sm truncate">{file.name}</span>
+                        </div>
+                        <span className="col-span-3 text-xs opacity-70">{file.modified}</span>
+                        <span className="col-span-3 text-xs opacity-70">{file.size}</span>
+                    </div>
+                 ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Status Bar */}
+        <div className="h-6 bg-gray-50 border-t border-gray-200 flex items-center px-4 text-[10px] text-gray-500">
+           {files.length} items, {files.reduce((acc, f) => f.type !== 'folder' ? acc + 1 : acc, 0) * 45} MB available
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FinderWindow = WindowWrapper(Finder, "finder");
+export default FinderWindow;
+
+=== D:\virtual-macos-simulator\src\windows\ImgFile.jsx ===
+// src/windows/ImgFile.jsx
+import React from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+import useWindowStore from "@store/window";
+
+const ImgFile = () => {
+  const { windows } = useWindowStore();
+  const data = windows.imgfile?.data;
+
+  if (!data) return <div className="p-4">No image loaded</div>;
+
+  return (
+    <div className="flex flex-col h-full bg-[#1e1e1e]">
+        <div className="h-full w-full flex items-center justify-center p-4">
+            <img 
+                src={data.imageUrl} 
+                alt={data.name} 
+                className="max-w-full max-h-full object-contain shadow-2xl" 
+            />
+        </div>
+    </div>
+  );
+};
+
+const ImgFileWindow = WindowWrapper(ImgFile, "imgfile");
+export default ImgFileWindow;
+
+=== D:\virtual-macos-simulator\src\windows\index.js ===
+import TerminalWindow from './Terminal';
+import Contact from './Contact';
+import Finder from './Finder';
+import ImgFile from './ImgFile';
+import Photos from './Photos';
+import Resume from './Resume';
+import Safari from './Safari';
+import TxtFile from './TxtFile';
+import Calculator from './Calculator';
+
+export { 
+    TerminalWindow, 
+    Contact, 
+    Finder, 
+    ImgFile, 
+    Photos, 
+    Resume, 
+    Safari, 
+    TxtFile,
+    Calculator 
+};
+
+=== D:\virtual-macos-simulator\src\windows\Photos.jsx ===
+import React, { useState } from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+import { gallery, photosLinks } from "@constants";
+import {
+  IoGridOutline,
+  IoAlbumsOutline,
+  IoPersonOutline,
+  IoLocationOutline,
+  IoTimeOutline,
+  IoHeartOutline,
+  IoHeart,
+  IoShareOutline,
+  IoChevronDown,
+  IoSearch,
+  IoAdd,
+  IoPlay,
+  IoInformationCircleOutline
+} from "react-icons/io5";
+
+const Albums = [
+  { id: 1, name: "Vacation 2024", count: 48, cover: gallery[0].src, date: "Last month" },
+  { id: 2, name: "Family Photos", count: 156, cover: gallery[1].src, date: "2 months ago" },
+  { id: 3, name: "Nature Walks", count: 89, cover: gallery[2].src, date: "3 months ago" },
+  { id: 4, name: "Work Events", count: 23, cover: gallery[3].src, date: "Yesterday" },
+  { id: 5, name: "Personal Favorites", count: 67, cover: gallery[4].src, date: "Last week" },
+];
+
+const Memories = [
+  { id: 1, title: "Best of 2024", description: "Your year in photos", count: 156, cover: gallery[5].src },
+  { id: 2, title: "Trip to Hawaii", description: "Aloha memories", count: 89, cover: gallery[6].src },
+  { id: 3, title: "Birthday Celebration", description: "Special moments", count: 45, cover: gallery[7].src },
+];
+
+const Photos = () => {
+  const [activeSection, setActiveSection] = useState("library");
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
+  const [favorites, setFavorites] = useState([2, 5, 7]);
+
+  const toggleFavorite = (photoId) => {
+    setFavorites(prev => 
+      prev.includes(photoId) 
+        ? prev.filter(id => id !== photoId)
+        : [...prev, photoId]
+    );
+  };
+
+  const toggleSelectPhoto = (photoId) => {
+    setSelectedPhotos(prev =>
+      prev.includes(photoId)
+        ? prev.filter(id => id !== photoId)
+        : [...prev, photoId]
+    );
+  };
+
+  const getPhotoIcon = (section) => {
+    switch(section) {
+      case "library": return IoGridOutline;
+      case "memories": return IoAlbumsOutline;
+      case "people": return IoPersonOutline;
+      case "places": return IoLocationOutline;
+      case "recents": return IoTimeOutline;
+      default: return IoGridOutline;
+    }
+  };
+
+  return (
+    <div className="flex h-full w-full bg-white">
+      {/* Sidebar */}
+      <div className="w-60 flex-shrink-0 bg-gray-50/80 border-r border-gray-200 flex flex-col p-4">
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-2">Photos</h2>
+          <p className="text-xs text-gray-500">1,245 items • 45.2 GB</p>
+        </div>
+
+        <nav className="space-y-1">
+          {photosLinks.map((link) => {
+            const Icon = getPhotoIcon(link.id);
+            return (
+              <button
+                key={link.id}
+                onClick={() => setActiveSection(link.id)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg w-full transition-colors ${
+                  activeSection === link.id
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Icon className="text-lg" />
+                <span className="text-sm font-medium">{link.name}</span>
+                {link.id === "recents" && (
+                  <span className="ml-auto text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
+                    324
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="mt-8">
+          <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">My Albums</h3>
+          <div className="space-y-2">
+            {Albums.slice(0, 3).map(album => (
+              <button
+                key={album.id}
+                className="flex items-center gap-3 px-2 py-2 rounded-lg w-full hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                  <img src={album.cover} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="text-sm font-medium text-gray-900 truncate">{album.name}</p>
+                  <p className="text-xs text-gray-500">{album.count} photos</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Toolbar */}
+        <div className="h-12 border-b border-gray-200 flex items-center justify-between px-4 bg-white/80">
+          <div className="flex items-center gap-4">
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`px-3 py-1 rounded text-sm ${
+                  viewMode === "grid" 
+                    ? 'bg-white shadow-sm text-blue-600' 
+                    : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Grid
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`px-3 py-1 rounded text-sm ${
+                  viewMode === "list" 
+                    ? 'bg-white shadow-sm text-blue-600' 
+                    : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                List
+              </button>
+            </div>
+            
+            {selectedPhotos.length > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-700">{selectedPhotos.length} selected</span>
+                <button className="text-sm text-blue-600 hover:text-blue-800">
+                  Share
+                </button>
+                <button className="text-sm text-red-600 hover:text-red-800">
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button className="p-2 hover:bg-gray-100 rounded-lg">
+              <IoSearch className="text-gray-600" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-lg">
+              <IoAdd className="text-gray-600" />
+            </button>
+            <button className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+              Import
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {activeSection === "library" && (
+            <>
+              {/* Memories Section */}
+              {activeSection === "library" && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-gray-900">Memories</h3>
+                    <button className="text-sm text-blue-600 hover:text-blue-800">
+                      <IoPlay className="inline mr-1" />
+                      Play All
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Memories.map(memory => (
+                      <div key={memory.id} className="group relative rounded-xl overflow-hidden cursor-pointer">
+                        <div className="aspect-video relative">
+                          <img 
+                            src={memory.cover} 
+                            alt={memory.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                          <div className="absolute bottom-4 left-4 text-white">
+                            <h4 className="font-bold text-lg">{memory.title}</h4>
+                            <p className="text-sm opacity-90">{memory.description}</p>
+                            <p className="text-xs mt-1">{memory.count} photos</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Albums Grid */}
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Albums</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {Albums.map(album => (
+                    <div key={album.id} className="group cursor-pointer">
+                      <div className="aspect-square rounded-xl overflow-hidden mb-2 relative">
+                        <img 
+                          src={album.cover} 
+                          alt={album.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                          {album.count}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 truncate">{album.name}</h4>
+                        <p className="text-xs text-gray-500">{album.date}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Photos Grid */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">All Photos</h3>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <IoChevronDown className="text-xs" />
+                    <span>Sorted by Date</span>
+                  </div>
+                </div>
+                
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
+                    {gallery.map((photo, index) => (
+                      <div
+                        key={photo.id}
+                        className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer"
+                        onClick={() => toggleSelectPhoto(photo.id)}
+                      >
+                        <img 
+                          src={photo.src} 
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        
+                        {/* Selection Overlay */}
+                        {selectedPhotos.includes(photo.id) && (
+                          <div className="absolute inset-0 bg-blue-500/20 border-2 border-blue-500" />
+                        )}
+                        
+                        {/* Favorite Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(photo.id);
+                          }}
+                          className="absolute top-2 right-2 p-1.5 bg-black/40 rounded-full backdrop-blur-sm hover:bg-black/60 transition-colors"
+                        >
+                          {favorites.includes(photo.id) ? (
+                            <IoHeart className="text-red-500" />
+                          ) : (
+                            <IoHeartOutline className="text-white" />
+                          )}
+                        </button>
+                        
+                        {/* Selection Checkbox */}
+                        {selectedPhotos.includes(photo.id) && (
+                          <div className="absolute top-2 left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">✓</span>
+                          </div>
+                        )}
+                        
+                        {/* Hover Actions */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
+                            <button className="p-1.5 bg-white/90 rounded-full backdrop-blur-sm hover:bg-white">
+                              <IoShareOutline className="text-gray-700" />
+                            </button>
+                            <button className="p-1.5 bg-white/90 rounded-full backdrop-blur-sm hover:bg-white">
+                              <IoInformationCircleOutline className="text-gray-700" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // List View
+                  <div className="space-y-2">
+                    {gallery.map((photo, index) => (
+                      <div
+                        key={photo.id}
+                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 cursor-pointer border border-transparent hover:border-gray-200"
+                        onClick={() => toggleSelectPhoto(photo.id)}
+                      >
+                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                          <img 
+                            src={photo.src} 
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">Photo_{index + 1}.jpg</p>
+                          <p className="text-sm text-gray-500">JPEG • 2.4 MB • Today</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(photo.id);
+                            }}
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                          >
+                            {favorites.includes(photo.id) ? (
+                              <IoHeart className="text-red-500" />
+                            ) : (
+                              <IoHeartOutline className="text-gray-400" />
+                            )}
+                          </button>
+                          {selectedPhotos.includes(photo.id) && (
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs">✓</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PhotosWindow = WindowWrapper(Photos, "photos");
+export default PhotosWindow;
+
+=== D:\virtual-macos-simulator\src\windows\Resume.jsx ===
+import React from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+import { IoDownloadOutline, IoPrintOutline, IoDocumentTextOutline } from "react-icons/io5";
+
+const Resume = () => {
+  return (
+    <div className="flex flex-col h-full bg-[#525659] overflow-hidden">
+      {/* PDF Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-[#323639] text-gray-200 shadow-md z-10">
+         <span className="text-sm font-medium">Getting_Started.pdf</span>
+         <div className="flex items-center gap-4">
+            <div className="flex bg-[#202124] rounded px-2 py-0.5 items-center gap-2 text-sm">
+                <button className="hover:text-white text-gray-400 font-bold">-</button>
+                <span className="w-10 text-center">100%</span>
+                <button className="hover:text-white text-gray-400 font-bold">+</button>
+            </div>
+            <IoDownloadOutline className="cursor-pointer hover:text-white text-gray-400" />
+            <IoPrintOutline className="cursor-pointer hover:text-white text-gray-400" />
+         </div>
+      </div>
+      
+      {/* PDF Body (Scrollable) */}
+      <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-[#525659]">
+         <div className="bg-white w-[595px] min-h-[842px] shadow-2xl p-10 text-gray-800 transition-transform origin-top">
+            <header className="border-b border-gray-200 pb-6 mb-8 flex items-center gap-4">
+                <IoDocumentTextOutline size={50} className="text-gray-400"/>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Virtual macOS Simulator</h1>
+                    <p className="text-lg text-gray-600 mt-1">User Guide & Manual</p>
+                </div>
+            </header>
+            
+            <div className="space-y-8">
+                <section>
+                    <h2 className="text-lg font-bold text-gray-900 uppercase border-b border-gray-200 pb-2 mb-4">Introduction</h2>
+                    <p className="text-sm leading-relaxed text-gray-700">
+                        Welcome to the virtual macOS simulator. This web-based environment allows you to experience the look and feel of a desktop operating system directly within your browser. 
+                        It is built using modern web technologies including React and Tailwind CSS.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 className="text-lg font-bold text-gray-900 uppercase border-b border-gray-200 pb-2 mb-4">Features</h2>
+                    <ul className="list-disc ml-4 text-sm text-gray-700 space-y-2">
+                        <li><strong>Window Management:</strong> Drag, drop, minimize, and maximize windows just like a real OS.</li>
+                        <li><strong>Dock System:</strong> Launch applications quickly from the dock at the bottom of the screen.</li>
+                        <li><strong>Finder:</strong> Navigate through a simulated file system.</li>
+                        <li><strong>Apps:</strong> Includes simulated versions of Safari, Photos, Contacts, Terminal, and more.</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 className="text-lg font-bold text-gray-900 uppercase border-b border-gray-200 pb-2 mb-4">Shortcuts</h2>
+                    <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+                        <span>Terminal: <code className="bg-gray-100 px-1 rounded">ctrl + L</code></span>
+                        <span>Clear terminal screen</span>
+                        <span>Finder: <code className="bg-gray-100 px-1 rounded">dbl-click</code></span>
+                        <span>Open files or folders</span>
+                    </div>
+                </section>
+
+                <div className="mt-10 pt-10 border-t border-gray-200 text-center text-xs text-gray-500">
+                    <p>Version 1.0.0 • © 2025 Simulator Inc.</p>
+                </div>
+            </div>
+         </div>
+      </div>
+    </div>
+  );
+};
+
+const ResumeWindow = WindowWrapper(Resume, "resume");
+export default ResumeWindow;
+
+=== D:\virtual-macos-simulator\src\windows\Safari.jsx ===
+import React, { useState } from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+import { blogPosts } from "@constants";
+import { 
+  IoChevronBack, IoChevronForward, IoReload, IoShareOutline, 
+  IoHomeOutline, IoSearch, IoEllipsisHorizontal,
+  IoLockClosed, IoGlobeOutline
+} from "react-icons/io5";
+import { FiBookmark } from "react-icons/fi";
+
+const Safari = () => {
+  const [url, setUrl] = useState("https://www.apple.com/startpage");
+  const [bookmarks, setBookmarks] = useState([
+    { name: "Apple", url: "https://apple.com", icon: "🍎" },
+    { name: "iCloud", url: "https://icloud.com", icon: "☁️" },
+    { name: "Wikipedia", url: "https://wikipedia.org", icon: "📖" },
+    { name: "News", url: "https://news.com", icon: "📰" },
+  ]);
+
+  return (
+    <div className="flex flex-col h-full bg-white">
+      {/* Top Browser Bar */}
+      <div className="flex items-center gap-2 px-4 py-2 bg-gray-100/80 border-b border-gray-200">
+        <div className="flex gap-1">
+          <button className="p-2 rounded-full hover:bg-gray-300/50 transition-colors">
+            <IoChevronBack className="text-gray-600" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-300/50 transition-colors">
+            <IoChevronForward className="text-gray-600" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-300/50 transition-colors">
+            <IoReload className="text-gray-600" />
+          </button>
+        </div>
+
+        {/* URL Bar */}
+        <div className="flex-1 flex items-center bg-white rounded-full px-4 py-2 mx-2 shadow-sm border border-gray-300">
+          <IoLockClosed className="text-green-500 mr-2" />
+          <IoGlobeOutline className="text-gray-400 mr-2" />
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="flex-1 bg-transparent outline-none text-sm"
+          />
+          <button className="p-1 hover:bg-gray-100 rounded">
+            <IoSearch className="text-gray-500" />
+          </button>
+        </div>
+
+        {/* Right Controls */}
+        <div className="flex gap-2">
+          <button className="p-2 hover:bg-gray-300/50 rounded-full transition-colors">
+            <IoShareOutline className="text-gray-600" />
+          </button>
+          <button 
+            onClick={() => setBookmarks(prev => [...prev, { name: "New Bookmark", url, icon: "⭐" }])}
+            className="p-2 hover:bg-gray-300/50 rounded-full transition-colors"
+          >
+            <FiBookmark className="text-gray-600" />
+          </button>
+          <button className="p-2 hover:bg-gray-300/50 rounded-full transition-colors">
+            <IoEllipsisHorizontal className="text-gray-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* Bookmarks Bar */}
+      <div className="px-4 py-2 border-b border-gray-200 bg-gray-50/50 hidden md:flex items-center gap-4">
+        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white transition-colors">
+          <IoHomeOutline className="text-gray-600" />
+          <span className="text-sm">Favorites</span>
+        </button>
+        {bookmarks.map((bookmark, idx) => (
+          <button
+            key={idx}
+            onClick={() => setUrl(bookmark.url)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white transition-colors"
+          >
+            <span>{bookmark.icon}</span>
+            <span className="text-sm text-gray-700">{bookmark.name}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto bg-white">
+        <div className="relative bg-gradient-to-br from-gray-50 to-blue-50 p-8 text-center min-h-full">
+          <div className="max-w-5xl mx-auto pt-10">
+            <img src="/icons/search.svg" className="w-16 h-16 mx-auto mb-6 opacity-20" alt="logo" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">Start Page</h1>
+            
+            {/* Quick Links / Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {blogPosts.map((post) => (
+                    <div key={post.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow text-left">
+                        <div className="h-40 overflow-hidden">
+                             <img src={post.img} alt={post.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"/>
+                        </div>
+                        <div className="p-5">
+                            <span className="text-xs text-blue-500 font-bold uppercase tracking-wide">News</span>
+                            <h3 className="font-bold text-gray-900 mt-2 mb-2">{post.title}</h3>
+                            <p className="text-sm text-gray-500 line-clamp-2">{post.desc}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="mt-12 text-gray-400 text-sm">
+                <p>Privacy Report: 0 trackers prevented</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SafariWindow = WindowWrapper(Safari, "safari");
+export default SafariWindow;
+
+=== D:\virtual-macos-simulator\src\windows\Terminal.jsx ===
+import React, { useEffect, useRef, useState } from "react";
+import useWindowStore from "@store/window";
+import WindowWrapper from "@hoc/WindowWrapper";
+
+const Terminal = () => {
+  const { openWindow, closeWindow } = useWindowStore();
+  const outputRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const [input, setInput] = useState("");
+  const [cwd, setCwd] = useState("~");
+  const [lines, setLines] = useState([
+    "Last login: " + new Date().toUTCString() + " on ttys000",
+    "Welcome to Virtual macOS. Type 'help' for commands.",
+  ]);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(null);
+
+  // Mock File System
+  const fileStructure = {
+    "~": ["Desktop", "Documents", "Downloads", "Pictures"],
+    "Desktop": ["project_files", "wallpaper.jpg"],
+    "Documents": ["resume.pdf", "notes.txt"],
+    "Downloads": ["installer.dmg"],
+  };
+
+  useEffect(() => {
+    outputRef.current && (outputRef.current.scrollTop = outputRef.current.scrollHeight);
+  }, [lines]);
+
+  const pushLine = (text) => setLines((prev) => [...prev, text]);
+
+  const commands = {
+    help: () => {
+      pushLine("Available commands:");
+      pushLine("  open <app>     - Open app (safari, finder, calculator...)");
+      pushLine("  cd <dir>       - Change directory");
+      pushLine("  ls             - List files");
+      pushLine("  pwd            - Print working directory");
+      pushLine("  clear          - Clear screen");
+      pushLine("  whoami         - Current user");
+    },
+    clear: () => setLines([]),
+    whoami: () => pushLine("guest"),
+    pwd: () => pushLine(cwd === "~" ? "/Users/guest" : `/Users/guest/${cwd}`),
+    ls: () => {
+        const dirContent = fileStructure[cwd] || [];
+        pushLine(dirContent.join("  "));
+    },
+    cd: (args) => {
+        if (!args.length || args[0] === "~") {
+            setCwd("~");
+            return;
+        }
+        if (args[0] === "..") {
+            setCwd("~");
+            return;
+        }
+        
+        const target = args[0];
+        const currentContent = fileStructure[cwd] || [];
+        if (cwd === "~" && currentContent.includes(target)) {
+            setCwd(target);
+        } else {
+            pushLine(`cd: no such file or directory: ${target}`);
+        }
+    },
+    open: (args) => {
+      if (!args.length) return pushLine("Usage: open <app_name>");
+      const appMap = {
+        finder: "finder",
+        safari: "safari",
+        photos: "photos",
+        contact: "contact",
+        resume: "resume",
+        terminal: "terminal",
+        calculator: "calculator",
+        trash: "trash"
+      };
+      const target = args[0].toLowerCase();
+      if (appMap[target]) {
+        openWindow(appMap[target]);
+        pushLine(`Process started: ${target}`);
+      } else {
+        pushLine(`Application '${target}' not found.`);
+      }
+    },
+    exit: () => closeWindow("terminal")
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    const newHistory = [...history, input];
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length);
+    
+    pushLine(`guest@macbook ${cwd} % ${input}`);
+    
+    const parts = input.trim().split(" ");
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    if (commands[cmd]) {
+      commands[cmd](args);
+    } else {
+      pushLine(`zsh: command not found: ${cmd}`);
+    }
+    setInput("");
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (historyIndex > 0) {
+            const newIdx = historyIndex - 1;
+            setHistoryIndex(newIdx);
+            setInput(history[newIdx]);
+        }
+    } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (historyIndex < history.length - 1) {
+            const newIdx = historyIndex + 1;
+            setHistoryIndex(newIdx);
+            setInput(history[newIdx]);
+        } else {
+            setHistoryIndex(history.length);
+            setInput("");
+        }
+    }
+  };
+
+  return (
+    <div className="flex flex-col w-full h-full bg-[#1e1e1e] text-white font-mono text-sm p-2" onClick={() => inputRef.current?.focus()}>
+      <div className="flex-1 overflow-y-auto" ref={outputRef}>
+        {lines.map((line, i) => (
+          <div key={i} className="whitespace-pre-wrap mb-1 leading-tight">{line}</div>
+        ))}
+      </div>
+      <form onSubmit={handleSubmit} className="flex gap-2 pt-2 pb-1">
+        <span className="text-blue-400 font-bold">{`guest@macbook ${cwd} %`}</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1 bg-transparent border-none outline-none text-white caret-gray-400"
+          autoFocus
+          spellCheck="false"
+        />
+      </form>
+    </div>
+  );
+};
+
+export default WindowWrapper(Terminal, "terminal");
+
+=== D:\virtual-macos-simulator\src\windows\TxtFile.jsx ===
+import React from "react";
+import WindowWrapper from "@hoc/WindowWrapper";
+import useWindowStore from "@store/window";
+
+const TxtFile = () => {
+  const { windows } = useWindowStore();
+  const data = windows.txtfile?.data;
+
+  return (
+    <div className="flex flex-col h-full bg-white text-gray-800 font-mono text-sm">
+       <div className="p-6 whitespace-pre-wrap leading-relaxed outline-none h-full overflow-y-auto" contentEditable suppressContentEditableWarning>
+         {data?.content || "No content loaded."}
+       </div>
+    </div>
+  );
+};
+
+const TxtFileWindow = WindowWrapper(TxtFile, "txtfile");
+export default TxtFileWindow;
+
+=== D:\virtual-macos-simulator\vite.config.js ===
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: {
+      '@components': resolve(dirname(fileURLToPath(import.meta.url)), 'src/components'),
+      '@constants': resolve(dirname(fileURLToPath(import.meta.url)), 'src/constants'),
+      '@store': resolve(dirname(fileURLToPath(import.meta.url)), 'src/store'),
+      '@hoc': resolve(dirname(fileURLToPath(import.meta.url)), 'src/hoc'),
+      '@windows': resolve(dirname(fileURLToPath(import.meta.url)), 'src/windows'),
+    }
+  }
+})
+
+
