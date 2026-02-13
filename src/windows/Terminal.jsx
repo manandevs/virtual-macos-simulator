@@ -13,8 +13,19 @@ const Terminal = () => {
     "Last login: " + new Date().toUTCString() + " on ttys000",
     "Welcome to Virtual macOS. Type 'help' for commands.",
   ]);
+  
+  // History State
   const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(null);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [lines]);
+
+  const pushLine = (text) => setLines((prev) => [...prev, text]);
 
   // Mock File System
   const fileStructure = {
@@ -23,12 +34,6 @@ const Terminal = () => {
     "Documents": ["resume.pdf", "notes.txt"],
     "Downloads": ["installer.dmg"],
   };
-
-  useEffect(() => {
-    outputRef.current && (outputRef.current.scrollTop = outputRef.current.scrollHeight);
-  }, [lines]);
-
-  const pushLine = (text) => setLines((prev) => [...prev, text]);
 
   const commands = {
     help: () => {
@@ -39,21 +44,27 @@ const Terminal = () => {
       pushLine("  pwd            - Print working directory");
       pushLine("  clear          - Clear screen");
       pushLine("  whoami         - Current user");
+      pushLine("  echo <text>    - Print text");
     },
     clear: () => setLines([]),
     whoami: () => pushLine("guest"),
     pwd: () => pushLine(cwd === "~" ? "/Users/guest" : `/Users/guest/${cwd}`),
     ls: () => {
         const dirContent = fileStructure[cwd] || [];
-        pushLine(dirContent.join("  "));
+        if(dirContent.length > 0) {
+            pushLine(dirContent.join("   "));
+        } else {
+            pushLine(""); // Empty line if empty dir
+        }
     },
+    echo: (args) => pushLine(args.join(" ")),
     cd: (args) => {
         if (!args.length || args[0] === "~") {
             setCwd("~");
             return;
         }
         if (args[0] === "..") {
-            setCwd("~");
+            setCwd("~"); // Simple mock implementation: always back to root
             return;
         }
         
@@ -80,7 +91,7 @@ const Terminal = () => {
       const target = args[0].toLowerCase();
       if (appMap[target]) {
         openWindow(appMap[target]);
-        pushLine(`Process started: ${target}`);
+        pushLine(`Opening ${target}...`);
       } else {
         pushLine(`Application '${target}' not found.`);
       }
@@ -92,13 +103,14 @@ const Terminal = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
+    // Update History
     const newHistory = [...history, input];
     setHistory(newHistory);
-    setHistoryIndex(newHistory.length);
+    setHistoryIndex(newHistory.length); // Reset index to end
     
     pushLine(`guest@macbook ${cwd} % ${input}`);
     
-    const parts = input.trim().split(" ");
+    const parts = input.trim().split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const args = parts.slice(1);
 
@@ -117,6 +129,10 @@ const Terminal = () => {
             const newIdx = historyIndex - 1;
             setHistoryIndex(newIdx);
             setInput(history[newIdx]);
+        } else if (historyIndex === 0 && history.length > 0) {
+            // Reached start
+            setHistoryIndex(0);
+            setInput(history[0]);
         }
     } else if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -132,22 +148,27 @@ const Terminal = () => {
   };
 
   return (
-    <div className="flex flex-col w-full h-full bg-[#1e1e1e] text-white font-mono text-sm p-2" onClick={() => inputRef.current?.focus()}>
-      <div className="flex-1 overflow-y-auto" ref={outputRef}>
+    <div 
+        className="flex flex-col w-full h-full bg-[#1e1e1e] text-white font-mono text-[13px] p-2 overflow-hidden" 
+        onClick={() => inputRef.current?.focus()}
+    >
+      <div className="flex-1 overflow-y-auto custom-scrollbar" ref={outputRef}>
         {lines.map((line, i) => (
-          <div key={i} className="whitespace-pre-wrap mb-1 leading-tight">{line}</div>
+          <div key={i} className="whitespace-pre-wrap mb-0.5 leading-snug opacity-90">{line}</div>
         ))}
       </div>
-      <form onSubmit={handleSubmit} className="flex gap-2 pt-2 pb-1">
-        <span className="text-blue-400 font-bold">{`guest@macbook ${cwd} %`}</span>
+      <form onSubmit={handleSubmit} className="flex gap-2 pt-2 pb-1 shrink-0">
+        <span className="text-[#32d74b] font-bold">➜</span>
+        <span className="text-blue-400 font-bold">{cwd}</span>
         <input
           ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 bg-transparent border-none outline-none text-white caret-gray-400"
+          className="flex-1 bg-transparent border-none outline-none text-white caret-gray-400 ml-1"
           autoFocus
+          autoComplete="off"
           spellCheck="false"
         />
       </form>

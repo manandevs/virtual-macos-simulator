@@ -8,18 +8,16 @@ const useWindowStore = create((set) => ({
   
   // System UI State
   systemOverlay: {
-    appleMenu: false,
-    controlCenter: false,
     spotlight: false,
-    calendar: false,
+    controlCenter: false, // Added for future expansion
   },
 
   toggleSystemOverlay: (key) => {
     set(produce((state) => {
-      const targetState = !state.systemOverlay[key];
-      // Close all others
-      Object.keys(state.systemOverlay).forEach(k => state.systemOverlay[k] = false);
-      state.systemOverlay[key] = targetState;
+      // Close other overlays when opening one
+      const others = Object.keys(state.systemOverlay).filter(k => k !== key);
+      others.forEach(k => state.systemOverlay[k] = false);
+      state.systemOverlay[key] = !state.systemOverlay[key];
     }));
   },
 
@@ -33,13 +31,13 @@ const useWindowStore = create((set) => ({
     set(produce((state) => {
       const win = state.windows[windowKey];
       if (win) {
-        // If minimized, restore it
-        if (win.isMinimized) {
-          win.isMinimized = false;
-        }
         win.isOpen = true;
+        win.isMinimized = false;
+        // Bring to front immediately
         win.zIndex = state.nextZIndex++;
         if (data) win.data = data;
+        
+        // Close Spotlight if a window is opened via it
         state.systemOverlay.spotlight = false;
       }
     }));
@@ -52,16 +50,16 @@ const useWindowStore = create((set) => ({
         win.isOpen = false;
         win.isMinimized = false;
         win.isMaximized = false;
-        win.zIndex = INITIAL_Z_INDEX;
-        win.data = null;
+        win.data = null; 
       }
     }));
   },
 
   minimizeWindow: (windowKey) => {
     set(produce((state) => {
-      const win = state.windows[windowKey];
-      if (win) win.isMinimized = true;
+      if (state.windows[windowKey]) {
+        state.windows[windowKey].isMinimized = true;
+      }
     }));
   },
 
@@ -70,6 +68,7 @@ const useWindowStore = create((set) => ({
       const win = state.windows[windowKey];
       if (win) {
           win.isMaximized = !win.isMaximized;
+          // Bring to front when maximizing
           win.zIndex = state.nextZIndex++;
       }
     }));
@@ -79,8 +78,10 @@ const useWindowStore = create((set) => ({
     set(produce((state) => {
       const win = state.windows[windowKey];
       if (win && win.isOpen) {
-        win.zIndex = state.nextZIndex++;
-        // If focused via click, restore if minimized
+        // Only increment z-index if it's not already the highest
+        if (win.zIndex !== state.nextZIndex - 1) {
+            win.zIndex = state.nextZIndex++;
+        }
         win.isMinimized = false; 
       }
     }));
