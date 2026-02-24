@@ -10,31 +10,28 @@ const WindowWrapper = (Component, windowKey) => {
     const { focusWindow, windows, toggleMaximizeWindow } = useWindowStore();
     const windowState = windows[windowKey];
 
-    // Current position state
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const [isMounted, setIsMounted] = useState(false);
 
-    // Store the distance between the mouse and the top-left corner of the window
     const dragOffset = useRef({ x: 0, y: 0 });
 
-    // 1. Initial Centering Logic
     useEffect(() => {
       if (windowState.isOpen && !isMounted) {
         const winWidth = window.innerWidth;
         const winHeight = window.innerHeight;
-        // Default window size assumption (matches CSS min-widths)
-        const w = Math.min(winWidth * 0.6, 900);
-        const h = Math.min(winHeight * 0.6, 600);
+        
+        const w = Math.max(winWidth * 0.99, 1000);
+        const h = Math.max(winHeight * 0.99, 500);
 
         setPos({
-          x: (winWidth - w) / 2 + (Math.random() * 40 - 20),
-          y: (winHeight - h) / 2 + (Math.random() * 40 - 20),
+          x: (winWidth - w) / 2,
+          y: (winHeight - h) / 2,
         });
+        
         setIsMounted(true);
       }
     }, [windowState.isOpen, isMounted]);
 
-    // 2. Open Animation
     useGSAP(() => {
       if (windowState.isOpen && ref.current && !windowState.isMinimized) {
         gsap.fromTo(
@@ -45,11 +42,9 @@ const WindowWrapper = (Component, windowKey) => {
       }
     }, [windowState.isOpen, windowState.isMinimized]);
 
-    // 3. Dragging Logic
     const handleMouseDown = (e) => {
-      focusWindow(windowKey); // Bring to front on click
+      focusWindow(windowKey); 
 
-      // Only allow drag if target is the header area and NOT maximized
       if (!e.target.closest(".window-drag-area") || windowState.isMaximized) return;
 
       if (ref.current) {
@@ -65,17 +60,14 @@ const WindowWrapper = (Component, windowKey) => {
     };
 
     const handleMouseMove = (e) => {
-      // New Position = Current Mouse - Initial Offset
       let newX = e.clientX - dragOffset.current.x;
       let newY = e.clientY - dragOffset.current.y;
 
-      // Boundary Check: Prevent window from going above the screen (cannot reach close buttons)
       if (newY < 0) newY = 0;
 
-      // (Optional) Horizontal boundary check to keep some part of window on screen
       const windowWidth = ref.current?.offsetWidth || 300;
-      if (newX + windowWidth < 50) newX = 50 - windowWidth; // Keep right edge visible
-      if (newX > window.innerWidth - 50) newX = window.innerWidth - 50; // Keep left edge visible
+      if (newX + windowWidth < 50) newX = 50 - windowWidth; 
+      if (newX > window.innerWidth - 50) newX = window.innerWidth - 50; 
 
       setPos({ x: newX, y: newY });
     };
