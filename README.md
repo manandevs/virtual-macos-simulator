@@ -20,11 +20,12 @@ Experience a highly realistic, interactive macOS environment directly in your br
 
 ### Desktop & Dock
 *Authentic frosted-glass UI, functional top menu bar, and a GSAP-powered magnifying dock.*
-<img width="100%" alt="macOS Desktop View" src="https://github.com/user-attachments/assets/b2cac6fe-2b85-4411-9c4e-3a9b69cdd85e" />
+<img width="1919" height="907" alt="image" src="https://github.com/user-attachments/assets/d936959c-f613-4b2e-bd6b-b02fba272ebf" />
+
 
 ### Window Management & Applications
 *Draggable, stackable, and resizable windows with functioning simulated apps.*
-<img width="100%" alt="macOS Windows View" src="https://github.com/user-attachments/assets/15bb9f0c-3081-4f5a-818a-8ed5a74e9f3c" />
+<img width="1919" height="907" alt="image" src="https://github.com/user-attachments/assets/0b23aeff-6f84-47bb-b0d3-9e3f04c80437" />
 
 ---
 
