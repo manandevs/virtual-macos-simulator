@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import WindowWrapper from "@hoc/WindowWrapper";
-import useWindowStore from "@store/window";
+import {useWindowStore} from "@store/window";
 import { 
   IoChevronBack, IoChevronForward, IoSearchOutline, IoGridOutline, IoListOutline 
 } from "react-icons/io5";

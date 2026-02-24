@@ -3,12 +3,10 @@ import { Tooltip } from "react-tooltip";
 import { dockApps } from "../constants";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import useWindowStore from "@store/window";
+import { useWindowStore } from "@store/window";
 
 const Dock = () => {
   const dockRef = useRef(null);
-
-  // ❗ DO NOT TOUCH — as you requested
   const { openWindow, closeWindow, windows } = useWindowStore();
 
   useGSAP(() => {
@@ -58,19 +56,18 @@ const Dock = () => {
     };
   });
 
-const toggleApp = (app) => {
-  if (!app.canOpen) return;
+  const toggleApp = (app) => {
+    if (!app.canOpen) return;
 
-  const win = windows[app.id]; // <-- correct variable
-  if (win?.isOpen) {
-    closeWindow(app.id);
-  } else {
-    openWindow(app.id);
-  }
+    const win = windows[app.id];
+    if (win?.isOpen) {
+      closeWindow(app.id);
+    } else {
+      openWindow(app.id);
+    }
 
-  console.log(win, app);
-};
-
+    console.log(win, app);
+  };
 
   return (
     <section id="dock" ref={dockRef} className="fixed bottom-2 left-1/2 -translate-x-1/2 z-40">
@@ -96,14 +93,7 @@ const toggleApp = (app) => {
               />
 
               {windows[app.id]?.isOpen && (
-                <div
-                  className={`
-          absolute -bottom-0.5 h-1 rounded-full transition-all duration-150 
-          shadow-[0_0_6px_rgba(66,133,244,0.9)]
-          w-3 bg-gray-200 group-hover:w-8 group-hover:bg-blue-400
-          ${windows[app.id]?.isOpen ? "w-6 bg-blue-400" : ""}
-        `}
-                />
+                <div className={`absolute -bottom-0.5 h-1 rounded-full transition-all duration-150 shadow-[0_0_6px_rgba(66,133,244,0.9)]w-3 bg-gray-200 group-hover:w-8 group-hover:bg-blue-400 ${windows[app.id]?.isOpen ? "w-6 bg-blue-400" : ""}`}/>
               )}
             </div>
           </button>

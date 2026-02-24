@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import useWindowStore from "@store/window";
+import {useWindowStore} from "@store/window";
 import WindowWrapper from "@hoc/WindowWrapper";
 
 const Terminal = () => {
@@ -38,7 +38,7 @@ const Terminal = () => {
   const commands = {
     help: () => {
       pushLine("Available commands:");
-      pushLine("  open <app>     - Open app (safari, finder, calculator...)");
+      pushLine("  open <app>     - Open app (safari, finder...)");
       pushLine("  cd <dir>       - Change directory");
       pushLine("  ls             - List files");
       pushLine("  pwd            - Print working directory");
@@ -85,7 +85,6 @@ const Terminal = () => {
         contact: "contact",
         resume: "resume",
         terminal: "terminal",
-        calculator: "calculator",
         trash: "trash"
       };
       const target = args[0].toLowerCase();

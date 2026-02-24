@@ -1,108 +1,150 @@
+import React, { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
-import React, { useRef, useEffect } from 'react'
 
-const FONT_WEIGHTS = {
-    title: { min: 400, max: 900, default: 400 },
-    subtitle: { min: 200, max: 400, default: 200 },
-}
+const AnimatedText = ({ 
+  text, 
+  className = "", 
+  limitRange = 150,
+  lift = 20 
+}) => {
+  const containerRef = useRef(null)
+  const isReady = useRef(false)
 
-// Render each word with characters inside, keep spaces separate
-const renderWordText = (text, className) => {
-    return text.split(" ").map((word, wi) => (
-        <span key={wi} className="inline-block">
-            {[...word].map((char, ci) => (
-                <span key={ci} className={className}>
-                    {char}
-                </span>
-            ))}
-        </span>
-    ))
-}
-
-const setupTextHover = (container, type) => {
+  useGSAP(() => {
+    const container = containerRef.current
     if (!container) return
 
-    const letters = container.querySelectorAll("span > span")
-    const { min, max, default: base } = FONT_WEIGHTS[type]
+    const chars = container.querySelectorAll('.char')
 
-    const animateWeight = (letter, weight, duration = 0.25) => {
-        gsap.to(letter, {
-            duration,
-            ease: 'power2.out',
-            fontVariationSettings: `"wght" ${weight}`,
-        })
-    }
+    const tl = gsap.timeline({
+      onComplete: () => {
+        isReady.current = true
+      }
+    })
+
+    tl.fromTo(chars,
+      { y: 50, opacity: 0 },
+      { 
+        y: 0, 
+        opacity: 1, 
+        stagger: 0.03, 
+        duration: 0.8, 
+        ease: "back.out(1.7)" 
+      }
+    )
 
     const handleMouseMove = (e) => {
-        const rect = container.getBoundingClientRect()
-        const mouseX = e.clientX - rect.left
+      if (!isReady.current) return
 
-        letters.forEach((letter) => {
-            const letterRect = letter.getBoundingClientRect()
-            const center = letterRect.left - rect.left + letterRect.width / 2
-            const distance = Math.abs(mouseX - center)
-            const intensity = Math.exp(-(distance ** 2) / 10000)
-            const weight = min + (max - min) * intensity
-            animateWeight(letter, weight)
-        })
+      const rect = container.getBoundingClientRect()
+      const mouseX = e.clientX
+
+      chars.forEach((char) => {
+        const charRect = char.getBoundingClientRect()
+        const charCenterX = charRect.left + charRect.width / 2
+        
+        const dist = Math.abs(mouseX - charCenterX)
+        const intensity = 1 - Math.min(dist / limitRange, 1)
+        
+        const targetColor = gsap.utils.interpolate("#000000", "#2563eb", intensity)
+        const targetWeight = 300 + (intensity * 300)
+
+        if (intensity > 0) {
+          gsap.to(char, {
+            y: -(intensity * lift),
+            scale: 1 + (intensity * 0.6),
+            color: targetColor,
+            fontWeight: targetWeight,
+            opacity: 1,
+            duration: 0.2,
+            overwrite: true,
+            ease: "power2.out"
+          })
+        } else {
+          gsap.to(char, {
+            y: 0,
+            scale: 1,
+            color: "#000000",
+            fontWeight: 300,
+            opacity: 1,
+            duration: 0.4,
+            overwrite: true,
+            ease: "power2.out"
+          })
+        }
+      })
     }
 
     const handleMouseLeave = () => {
-        letters.forEach((l) => animateWeight(l, base))
+      if (!isReady.current) return
+
+      gsap.to(chars, {
+        y: 0,
+        scale: 1,
+        color: "#000000",
+        fontWeight: 300,
+        opacity: 1,
+        duration: 0.5,
+        ease: "elastic.out(1, 0.5)"
+      })
     }
 
-    container.addEventListener("mousemove", handleMouseMove)
-    container.addEventListener("mouseleave", handleMouseLeave)
+    container.addEventListener('mousemove', handleMouseMove)
+    container.addEventListener('mouseleave', handleMouseLeave)
 
-    // Cleanup function to remove listeners when unmounting
     return () => {
-        container.removeEventListener("mousemove", handleMouseMove)
-        container.removeEventListener("mouseleave", handleMouseLeave)
+      container.removeEventListener('mousemove', handleMouseMove)
+      container.removeEventListener('mouseleave', handleMouseLeave)
     }
-}
+  }, { scope: containerRef, dependencies: [lift] })
 
-const AnimatedText = ({ text, className = "" }) => {
-    return (
-        <div className={`flex flex-wrap justify-center space-x-2 ${className}`}>
-            {renderWordText(text, "inline-block transition-all duration-100 hover:scale-110 hover:text-gray-900")}
+  return (
+    <div ref={containerRef} className={`flex flex-wrap justify-center gap-x-4 gap-y-1 ${className}`}>
+      {text.split(" ").map((word, wi) => (
+        <div key={wi} className="inline-block whitespace-nowrap">
+          {word.split("").map((char, ci) => (
+            <span key={ci} className="char inline-block origin-bottom will-change-transform cursor-default select-none text-black font-light">
+              {char}
+            </span>
+          ))}
         </div>
-    )
+      ))}
+    </div>
+  )
 }
 
 const Desktop = () => {
-    const titleRef = useRef(null)
-    const subtitleRef = useRef(null)
+  return (
+    <section
+      id="desktop"
+      className="flex flex-col justify-center items-center w-full h-full select-none overflow-hidden"
+    >
+      <div className='text-center mb-8 z-10'>
+        <AnimatedText
+          text={"virtual"}
+          className={"text-6xl sm:text-7xl md:text-9xl font-transcity max-w-3xl leading-[0.8] tracking-tighter"}
+          limitRange={100}
+          lift={15}
+        />
+        <AnimatedText
+          text={"MACOS Simulator"}
+          className={"text-6xl sm:text-7xl md:text-9xl font-transcity max-w-5xl leading-[0.8] tracking-tighter"}
+          limitRange={150}
+          lift={30}
+        />
+      </div>
 
-    useGSAP(() => {
-        const cleanupTitle = setupTextHover(titleRef.current, "title")
-        const cleanupSubtitle = setupTextHover(subtitleRef.current, "subtitle")
-
-        return () => {
-            cleanupTitle && cleanupTitle()
-            cleanupSubtitle && cleanupSubtitle()
-        }
-    })
-
-    return (
-        <section
-            id="desktop"
-            className="flex flex-col justify-center items-center w-full h-full"
-        >
-            <h1 ref={titleRef} className='text-center'>
-                <AnimatedText
-                    text={"virtual MACOS Simulator"}
-                    className={"text-7xl sm:text-8xl md:text-9xl font-handmade space-x-10"}
-                />
-            </h1>
-            <p ref={subtitleRef} className="text-center px-4 mt-6 max-w-3xl mx-auto">
-                <AnimatedText
-                    text="Experience a realistic macOS environment directly in your browser with our fully web-based virtual simulator."
-                    className="text-2xl md:text-3xl font-georama font-extralight"
-                />
-            </p>
-        </section>
-    )
+      <div className="text-center px-4 max-w-4xl mx-auto z-10">
+        <AnimatedText
+          text="Experience a realistic macOS environment directly in your browser with our fully web-based virtual simulator."
+          className="text-xl md:text-3xl tracking-wide"
+          limitRange={150}
+          lift={10}
+        />
+      </div>
+    </section>
+  )
 }
 
 export default Desktop

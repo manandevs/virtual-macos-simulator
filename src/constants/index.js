@@ -20,7 +20,6 @@ export const dockApps = [
   { id: "photos", name: "Photos", icon: "photos.png", canOpen: true },
   { id: "contact", name: "Contact", icon: "contact.png", canOpen: true },
   { id: "terminal", name: "Terminal", icon: "terminal.png", canOpen: true },
-  { id: "calculator", name: "Calculator", icon: "calculator.png", canOpen: true },
   { id: "trash", name: "Trash", icon: "trash.png", canOpen: true },
 ];
 
@@ -94,7 +93,6 @@ export const WINDOW_CONFIG = {
   safari: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   photos: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   terminal: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  calculator: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   trash: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   txtfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   imgfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },

@@ -1,6 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Georama:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap");
 @import "tailwindcss";
-
 
 html,
 body {
@@ -11,43 +9,22 @@ body {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  font-family: 'Urbanist';
 }
 
 @font-face {
-  font-family: 'Recoleta';
-  src: url('/fonts/Recoleta.otf') format('opentype');
-  font-weight: 100 900;
-  font-display: swap;
+  font-family: 'Transcity';
+  src: url('/fonts/Transcity.otf') format('opentype');
 }
 
 @font-face {
-  font-family: 'Whimsy';
-  src: url('/fonts/Whimsy Bittersweet Demo.otf') format('opentype');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Handmade';
-  src: url('/fonts/Simple Handmade.otf') format('opentype');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Xirstark';
-  src: url('/fonts/Xirstark Demo.otf') format('opentype');
-  font-weight: 100 900;
-  font-display: swap;
+  font-family: 'Urbanist';
+  src: url('/fonts/Urbanist.ttf') format('opentype');
 }
 
 @theme {
-  --font-recoleta: "Recoleta", sans-serif;
-  --font-whimsy: "Whimsy", sans-serif;
-  --font-xirstark: "Xirstark", sans-serif;
-  --font-handmade: "Handmade", sans-serif;
-  --font-georama: "Georama", sans-serif;
-  --font-roboto: "Roboto Mono", monospace;
+  --font-transcity: "Transcity";
+  --font-urbanist: "Urbanist";
   --breakpoint-3xl: 1920px;
 }
 
@@ -105,7 +82,7 @@ body {
       @apply sm:hidden m-7 bg-red-300/20 backdrop-blur-lg p-3 rounded-md absolute top-10;
 
       p {
-        @apply flex-1 text-[16px] text-center font-roboto text-gray-400;
+        @apply flex-1 text-[16px] text-center  text-gray-400;
       }
     }
   }
@@ -202,7 +179,7 @@ body {
     }
 
     .techstack {
-      @apply text-sm font-roboto p-5;
+      @apply text-sm  p-5;
 
       .label {
         @apply flex items-center ms-10 mt-7;
@@ -499,7 +476,6 @@ body {
   animation: windowOpen 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Loading shimmer effect */
 .shimmer {
   background: linear-gradient(
     90deg,

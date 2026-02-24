@@ -1,5 +1,5 @@
 import React from "react";
-import useWindowStore from "@store/window";
+import {useWindowStore} from "@store/window";
 
 const WindowControls = ({ target, className = "" }) => {
   const { closeWindow, minimizeWindow, toggleMaximizeWindow } = useWindowStore();

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import useWindowStore from "@store/window";
+import { useWindowStore } from "@store/window";
 import { WindowControls } from "@components";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -73,7 +73,7 @@ const WindowWrapper = (Component, windowKey) => {
 
       // Boundary Check: Prevent window from going above the screen (cannot reach close buttons)
       if (newY < 0) newY = 0;
-      
+
       // (Optional) Horizontal boundary check to keep some part of window on screen
       const windowWidth = ref.current?.offsetWidth || 300;
       if (newX + windowWidth < 50) newX = 50 - windowWidth; // Keep right edge visible
@@ -120,14 +120,11 @@ const WindowWrapper = (Component, windowKey) => {
         style={{
           zIndex: windowState.zIndex,
           ...currentStyle,
-          // If maximized, remove border radius, otherwise use standard
           borderRadius: windowState.isMaximized ? "0px" : "12px",
-          // Ensure initial position is top-left so translate works from 0,0
           top: 0,
-          left: 0, 
+          left: 0,
         }}
       >
-        {/* Header/Drag Area */}
         <div
           className="window-drag-area shrink-0 z-50 w-full"
           onMouseDown={handleMouseDown}

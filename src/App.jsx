@@ -10,12 +10,11 @@ import {
   Resume, 
   ImgFile, 
   TxtFile,
-  Calculator 
 } from "@windows";
-import useWindowStore from "@store/window";
 
 import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
+import { useWindowStore } from "@store/window";
 
 gsap.registerPlugin(Draggable);
 
@@ -69,9 +68,7 @@ const App = () => {
         <Photos />
         <Contact />
         <TerminalWindow />
-        <Calculator />
-        <Resume />
-        
+        <Resume />        
         <ImgFile />
         <TxtFile />
       </div>

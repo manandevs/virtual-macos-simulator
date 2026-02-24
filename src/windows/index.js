@@ -6,7 +6,6 @@ import Photos from './Photos';
 import Resume from './Resume';
 import Safari from './Safari';
 import TxtFile from './TxtFile';
-import Calculator from './Calculator';
 
 export { 
     TerminalWindow, 
@@ -17,5 +16,4 @@ export {
     Resume, 
     Safari, 
     TxtFile,
-    Calculator 
 };

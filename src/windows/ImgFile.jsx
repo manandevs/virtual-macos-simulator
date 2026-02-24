@@ -1,7 +1,7 @@
 // src/windows/ImgFile.jsx
 import React from "react";
 import WindowWrapper from "@hoc/WindowWrapper";
-import useWindowStore from "@store/window";
+import {useWindowStore} from "@store/window";
 
 const ImgFile = () => {
   const { windows } = useWindowStore();

@@ -1,91 +1,96 @@
 import { create } from "zustand";
 import { produce } from "immer";
-import { INITIAL_Z_INDEX, WINDOW_CONFIG } from "@constants";
 
-const useWindowStore = create((set) => ({
-  windows: WINDOW_CONFIG,
-  nextZIndex: INITIAL_Z_INDEX + 1,
+const INITIAL_Z = 1000;
+
+const initialWindows = {
+  finder: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  safari: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  terminal: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  contact: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  resume: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  photos: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  trash: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  txtfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+  imgfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z },
+};
+
+export const useWindowStore = create((set) => ({
+  windows: initialWindows,
+  nextZIndex: INITIAL_Z + 1,
+  focusedWindow: null,
   
-  // System UI State
   systemOverlay: {
     spotlight: false,
-    controlCenter: false, // Added for future expansion
   },
 
-  toggleSystemOverlay: (key) => {
-    set(produce((state) => {
-      // Close other overlays when opening one
-      const others = Object.keys(state.systemOverlay).filter(k => k !== key);
-      others.forEach(k => state.systemOverlay[k] = false);
-      state.systemOverlay[key] = !state.systemOverlay[key];
-    }));
-  },
-
-  closeAllOverlays: () => {
-    set(produce((state) => {
-      Object.keys(state.systemOverlay).forEach(k => state.systemOverlay[k] = false);
-    }));
-  },
-
-  openWindow: (windowKey, data = null) => {
-    set(produce((state) => {
-      const win = state.windows[windowKey];
-      if (win) {
-        win.isOpen = true;
-        win.isMinimized = false;
-        // Bring to front immediately
-        win.zIndex = state.nextZIndex++;
-        if (data) win.data = data;
-        
-        // Close Spotlight if a window is opened via it
-        state.systemOverlay.spotlight = false;
-      }
-    }));
-  },
-
-  closeWindow: (windowKey) => {
-    set(produce((state) => {
-      const win = state.windows[windowKey];
-      if (win) {
-        win.isOpen = false;
-        win.isMinimized = false;
-        win.isMaximized = false;
-        win.data = null; 
-      }
-    }));
-  },
-
-  minimizeWindow: (windowKey) => {
-    set(produce((state) => {
-      if (state.windows[windowKey]) {
-        state.windows[windowKey].isMinimized = true;
-      }
-    }));
-  },
-
-  toggleMaximizeWindow: (windowKey) => {
-    set(produce((state) => {
-      const win = state.windows[windowKey];
-      if (win) {
-          win.isMaximized = !win.isMaximized;
-          // Bring to front when maximizing
-          win.zIndex = state.nextZIndex++;
-      }
-    }));
-  },
-
-  focusWindow: (windowKey) => {
-    set(produce((state) => {
-      const win = state.windows[windowKey];
-      if (win && win.isOpen) {
-        // Only increment z-index if it's not already the highest
-        if (win.zIndex !== state.nextZIndex - 1) {
-            win.zIndex = state.nextZIndex++;
+  openWindow: (id) =>
+    set(
+      produce((state) => {
+        if (state.windows[id]) {
+          state.windows[id].isOpen = true;
+          state.windows[id].isMinimized = false;
+          state.windows[id].zIndex = state.nextZIndex++;
+          state.focusedWindow = id;
+          state.systemOverlay.spotlight = false; 
         }
-        win.isMinimized = false; 
-      }
-    }));
-  },
-}));
+      })
+    ),
 
-export default useWindowStore;
+  closeWindow: (id) =>
+    set(
+      produce((state) => {
+        if (state.windows[id]) {
+          state.windows[id].isOpen = false;
+          state.windows[id].isMaximized = false;
+          if (state.focusedWindow === id) state.focusedWindow = null;
+        }
+      })
+    ),
+
+  minimizeWindow: (id) =>
+    set(
+      produce((state) => {
+        if (state.windows[id]) {
+          state.windows[id].isMinimized = true;
+          if (state.focusedWindow === id) state.focusedWindow = null;
+        }
+      })
+    ),
+
+  maximizeWindow: (id) =>
+    set(
+      produce((state) => {
+        if (state.windows[id]) {
+          state.windows[id].isMaximized = !state.windows[id].isMaximized;
+          state.windows[id].zIndex = state.nextZIndex++;
+          state.focusedWindow = id;
+        }
+      })
+    ),
+
+  focusWindow: (id) =>
+    set(
+      produce((state) => {
+        if (state.windows[id] && state.focusedWindow !== id) {
+          state.windows[id].zIndex = state.nextZIndex++;
+          state.focusedWindow = id;
+          state.windows[id].isMinimized = false;
+        }
+      })
+    ),
+
+  toggleSystemOverlay: (key) =>
+    set(
+      produce((state) => {
+        state.systemOverlay[key] = !state.systemOverlay[key];
+      })
+    ),
+
+  closeAllOverlays: () =>
+    set(
+      produce((state) => {
+        state.systemOverlay.spotlight = false;
+      })
+    ),
+}));

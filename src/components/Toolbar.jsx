@@ -8,19 +8,16 @@ const Toolbar = () => {
   const [time, setTime] = useState(dayjs());
   const [activeLink, setActiveLink] = useState(navLinks[0]?.id);
 
-  // clock update
   useEffect(() => {
     const interval = setInterval(() => setTime(dayjs()), 1000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <nav className="w-full fixed top-0 left-0 z-50 backdrop-blur-xl bg-white/30 shadow-md px-6 py-1 flex items-center justify-between transition-all duration-300">
-      {/* Left section */}
+    <nav className="w-full fixed top-0 left-0 z-50 backdrop-blur-xl bg-white/30 shadow-md px-6 py-2.5 flex items-center justify-between transition-all duration-300">
       <div className="flex items-center gap-8">
-        {/* Logo */}
-        <span className="flex items-center gap-2 font-xirstark text-gray-900 text-lg sm:text-xl pt-2.5">
-          <IoLogoApple className="w-6 h-6 -mt-3" />
+        <span className="flex items-center gap-2 text-gray-900 text-lg sm:text-xl">
+          <IoLogoApple className="w-6 h-6" />
           Virtual macOS
         </span>
 
@@ -32,7 +29,7 @@ const Toolbar = () => {
               <li
                 key={item.id}
                 onClick={() => setActiveLink(item.id)}
-                className={`font-recoleta flex items-center gap-1 capitalize cursor-pointer relative transition-all duration-200 group ${isActive
+                className={`flex items-center gap-1 capitalize cursor-pointer relative transition-all duration-200 group ${isActive
                   ? "text-black font-semibold"
                   : "text-gray-900 hover:text-black"
                   }`}
