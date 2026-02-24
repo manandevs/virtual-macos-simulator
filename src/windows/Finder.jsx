@@ -41,7 +41,7 @@ const FILE_SYSTEM = {
   
   const SIDEBAR_ITEMS = [
     { group: "Favorites", items: ["Desktop", "Documents", "Downloads", "Recents"] },
-    { group: "Locations", items: ["iCloud Drive", "Trash"] }
+    { group: "Locations", items: ["Trash"] }
   ];
 
 const Finder = () => {
@@ -113,9 +113,8 @@ const Finder = () => {
     }
   };
 
-  // ... (keep return JSX, just ensure image sources use getFileIcon logic) ...
   return (
-    <div className="flex h-full w-full bg-white text-sm font-sans select-none overflow-hidden">
+    <div className="flex h-full w-full bg-white text-sm select-none overflow-hidden">
         {/* Sidebar */}
         <div className="w-[180px] flex-shrink-0 bg-[#f3f4f6] border-r border-gray-200 flex flex-col pt-4 backdrop-blur-xl">
         {SIDEBAR_ITEMS.map((group, idx) => (

@@ -23,7 +23,6 @@ export const dockApps = [
   { id: "trash", name: "Trash", icon: "trash.png", canOpen: true },
 ];
 
-// Generic Tech/OS News for Safari
 export const blogPosts = [
   {
     id: 1,
@@ -57,12 +56,33 @@ export const techStack = [
   { category: "System", items: ["Web Filesystem API (Mock)", "Local Storage"] },
 ];
 
-// Generic mock contacts
 export const contactsList = [
-  { id: 1, name: "Apple Support", role: "Technical Support", email: "support@apple.com", avatar: "🍎", bg: "#f5f5f7" },
-  { id: 2, name: "Tim Cook (Mock)", role: "CEO", email: "tcook@apple.com", avatar: "TC", bg: "#007aff" },
-  { id: 3, name: "Craig Federighi", role: "Software Engineering", email: "hairforce1@apple.com", avatar: "CF", bg: "#5856d6" },
-  { id: 4, name: "Design Team", role: "Human Interface", email: "design@apple.com", avatar: "🎨", bg: "#ff2d55" },
+  {
+    id: 1,
+    name: "GitHub",
+    role: "Profile",
+    email: "abdulmanan.devs@gmail.com",
+    avatar: "GH",
+    bg: "#24292e",
+    link: "https://github.com/manandevs"
+  },
+  {
+    id: 2,
+    name: "LinkedIn",
+    role: "Profile",
+    email: "abdulmanan.devs@gmail.com",
+    avatar: "IN",
+    bg: "#0a66c2",
+    link: "https://www.linkedin.com/in/manan-devs/"
+  },
+  {
+    id: 3,
+    name: "Abdul Manan",
+    role: "Google Account",
+    email: "abdulmanan.devs@gmail.com",
+    avatar: "AM",
+    bg: "#34a853"
+  }
 ];
 
 export const photosLinks = [
@@ -83,17 +103,3 @@ export const gallery = [
   { id: 7, src: "https://images.unsplash.com/photo-1534665482403-a909d0d97c67?auto=format&fit=crop&w=800&q=80" },
   { id: 8, src: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80" },
 ];
-
-export const INITIAL_Z_INDEX = 1000;
-
-export const WINDOW_CONFIG = {
-  finder: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  contact: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  resume: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null }, 
-  safari: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  photos: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  terminal: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  trash: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  txtfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  imgfile: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-};

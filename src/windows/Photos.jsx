@@ -67,13 +67,13 @@ const Photos = () => {
   return (
     <div className="flex h-full w-full bg-white">
       {/* Sidebar */}
-      <div className="w-60 flex-shrink-0 bg-gray-50/80 border-r border-gray-200 flex flex-col p-4">
+      <div className="w-60 flex-shrink-0 bg-gray-50/80 border-r border-gray-200 flex flex-col p-4 overflow-y-auto">
         <div className="mb-8">
           <h2 className="text-lg font-bold text-gray-900 mb-2">Photos</h2>
           <p className="text-xs text-gray-500">1,245 items • 45.2 GB</p>
         </div>
 
-        <nav className="space-y-1">
+        <nav className="space-y-1 flex flex-col">
           {photosLinks.map((link) => {
             const Icon = getPhotoIcon(link.id);
             return (
@@ -187,7 +187,7 @@ const Photos = () => {
                       Play All
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Memories.map(memory => (
                       <div key={memory.id} className="group relative rounded-xl overflow-hidden cursor-pointer">
                         <div className="aspect-video relative">
@@ -212,7 +212,7 @@ const Photos = () => {
               {/* Albums Grid */}
               <div className="mb-8">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Albums</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3  gap-4">
                   {Albums.map(album => (
                     <div key={album.id} className="group cursor-pointer">
                       <div className="aspect-square rounded-xl overflow-hidden mb-2 relative">
@@ -245,7 +245,7 @@ const Photos = () => {
                 </div>
                 
                 {viewMode === "grid" ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                     {gallery.map((photo, index) => (
                       <div
                         key={photo.id}

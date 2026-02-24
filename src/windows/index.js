@@ -6,6 +6,7 @@ import Photos from './Photos';
 import Resume from './Resume';
 import Safari from './Safari';
 import TxtFile from './TxtFile';
+import TrashWindow from './Trash';
 
 export { 
     TerminalWindow, 
@@ -16,4 +17,5 @@ export {
     Resume, 
     Safari, 
     TxtFile,
+    TrashWindow
 };

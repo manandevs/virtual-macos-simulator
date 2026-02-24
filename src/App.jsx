@@ -15,6 +15,7 @@ import {
 import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
 import { useWindowStore } from "@store/window";
+import TrashWindow from "@windows/Trash";
 
 gsap.registerPlugin(Draggable);
 
@@ -71,6 +72,7 @@ const App = () => {
         <Resume />        
         <ImgFile />
         <TxtFile />
+        <TrashWindow />
       </div>
     </div>
   );

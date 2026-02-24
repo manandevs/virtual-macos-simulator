@@ -52,8 +52,6 @@ const WindowWrapper = (Component, windowKey) => {
       // Only allow drag if target is the header area and NOT maximized
       if (!e.target.closest(".window-drag-area") || windowState.isMaximized) return;
 
-      // Calculate the offset: Mouse Position - Window Top-Left Position
-      // This ensures the window stays exactly where it is relative to the cursor
       if (ref.current) {
         const rect = ref.current.getBoundingClientRect();
         dragOffset.current = {
@@ -89,19 +87,16 @@ const WindowWrapper = (Component, windowKey) => {
 
     if (!windowState.isOpen || windowState.isMinimized) return null;
 
-    // 4. Styles based on State
     const maximizedStyle = {
       top: 0,
       left: 0,
       width: "100%",
       height: "100%",
-      transform: "none", // Reset transform when maximized
+      transform: "none", 
       borderRadius: 0,
     };
 
     const normalStyle = {
-      // Use standard top/left for positioning to ensure getBoundingClientRect works predictably next time,
-      // or use translate. Translate is usually more performant.
       transform: `translate(${pos.x}px, ${pos.y}px)`,
       width: "60vw",
       height: "65vh",
@@ -133,7 +128,6 @@ const WindowWrapper = (Component, windowKey) => {
           <WindowControls target={windowKey} />
         </div>
 
-        {/* Content Area */}
         <div className="flex-1 overflow-hidden relative flex flex-col">
           <Component {...props} />
         </div>
