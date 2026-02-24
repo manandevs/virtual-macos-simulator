@@ -7,7 +7,7 @@ import gsap from "gsap";
 const WindowWrapper = (Component, windowKey) => {
   const Wrapped = (props) => {
     const ref = useRef(null);
-    const { focusWindow, windows, toggleMaximizeWindow } = useWindowStore();
+    const { focusWindow, windows, maximizeWindow } = useWindowStore();
     const windowState = windows[windowKey];
 
     const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -15,14 +15,17 @@ const WindowWrapper = (Component, windowKey) => {
 
     const dragOffset = useRef({ x: 0, y: 0 });
 
+    // 1. Initial Centering Logic (for Normal Size)
     useEffect(() => {
       if (windowState.isOpen && !isMounted) {
         const winWidth = window.innerWidth;
         const winHeight = window.innerHeight;
         
-        const w = Math.max(winWidth * 0.99, 1000);
-        const h = Math.max(winHeight * 0.99, 500);
+        // Calculate the normal floating window size (60vw and 65vh)
+        const w = Math.max(winWidth * 0.60, 350);
+        const h = Math.max(winHeight * 0.65, 250);
 
+        // Center the floating window
         setPos({
           x: (winWidth - w) / 2,
           y: (winHeight - h) / 2,
@@ -32,6 +35,7 @@ const WindowWrapper = (Component, windowKey) => {
       }
     }, [windowState.isOpen, isMounted]);
 
+    // 2. Open Animation
     useGSAP(() => {
       if (windowState.isOpen && ref.current && !windowState.isMinimized) {
         gsap.fromTo(
@@ -42,9 +46,11 @@ const WindowWrapper = (Component, windowKey) => {
       }
     }, [windowState.isOpen, windowState.isMinimized]);
 
+    // 3. Dragging Logic
     const handleMouseDown = (e) => {
       focusWindow(windowKey); 
 
+      // Prevent dragging if clicked on window controls or if the window is currently maximized
       if (!e.target.closest(".window-drag-area") || windowState.isMaximized) return;
 
       if (ref.current) {
@@ -63,6 +69,7 @@ const WindowWrapper = (Component, windowKey) => {
       let newX = e.clientX - dragOffset.current.x;
       let newY = e.clientY - dragOffset.current.y;
 
+      // Prevent moving above the screen (losing the header)
       if (newY < 0) newY = 0;
 
       const windowWidth = ref.current?.offsetWidth || 300;
@@ -79,15 +86,19 @@ const WindowWrapper = (Component, windowKey) => {
 
     if (!windowState.isOpen || windowState.isMinimized) return null;
 
+    // --- Window Styles ---
+    
+    // Style applied when the window is MAXIMIZED
     const maximizedStyle = {
       top: 0,
       left: 0,
       width: "100%",
       height: "100%",
-      transform: "none", 
+      transform: "none", // Remove positioning offsets
       borderRadius: 0,
     };
 
+    // Style applied when the window is in NORMAL floating mode
     const normalStyle = {
       transform: `translate(${pos.x}px, ${pos.y}px)`,
       width: "60vw",
@@ -103,7 +114,7 @@ const WindowWrapper = (Component, windowKey) => {
         id={windowKey}
         ref={ref}
         onMouseDown={() => focusWindow(windowKey)}
-        className="absolute flex flex-col bg-white/80 backdrop-blur-2xl shadow-2xl overflow-hidden border border-white/40 transition-all duration-75 ease-out will-change-transform"
+        className="absolute flex flex-col bg-white/80 backdrop-blur-2xl shadow-2xl overflow-hidden border border-white/40 transition-all duration-300 ease-in-out will-change-transform"
         style={{
           zIndex: windowState.zIndex,
           ...currentStyle,
@@ -115,7 +126,8 @@ const WindowWrapper = (Component, windowKey) => {
         <div
           className="window-drag-area shrink-0 z-50 w-full"
           onMouseDown={handleMouseDown}
-          onDoubleClick={() => toggleMaximizeWindow(windowKey)}
+          onDoubleClick={() => maximizeWindow(windowKey)}
+          title="Double-click header to maximize"
         >
           <WindowControls target={windowKey} />
         </div>

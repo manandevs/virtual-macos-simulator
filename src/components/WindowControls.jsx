@@ -9,19 +9,19 @@ const WindowControls = ({ target, className = "" }) => {
       <div className="flex items-center gap-2 group">
         <button className="py-2" onClick={(e) => { e.stopPropagation(); closeWindow(target); }}>
           <span
-            className="flex items-center justify-center w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e] hover:bg-[#ff5f57]/80 text-[8px] text-black/50 opacity-100 transition-all"
+            className="flex items-center justify-center w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e] hover:bg-[#ff5f57]/80 text-[8px] text-black/50 opacity-100 transition-all duration-200 hover:scale-110 active:scale-90"
           >
-            <span className="opacity-0 group-hover:opacity-100">✕</span>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">✕</span>
           </span>
         </button>
         <button className="py-2" onClick={(e) => { e.stopPropagation(); minimizeWindow(target); }}>
-          <span className="flex items-center justify-center w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] hover:bg-[#ffbd2e]/80 text-[8px] text-black/50 opacity-100 transition-all">
-            <span className="opacity-0 group-hover:opacity-100">−</span>
+          <span className="flex items-center justify-center w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] hover:bg-[#ffbd2e]/80 text-[8px] text-black/50 opacity-100 transition-all duration-200 hover:scale-110 active:scale-90">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">−</span>
           </span>
         </button>
         <button className="py-2" onClick={(e) => { e.stopPropagation(); toggleMaximizeWindow(target); }}>
-          <span className="flex items-center justify-center w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] hover:bg-[#27c93f]/80 text-[6px] text-black/50 opacity-100 transition-all">
-            <span className="opacity-0 group-hover:opacity-100">sw</span>
+          <span className="flex items-center justify-center w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] hover:bg-[#27c93f]/80 text-[6px] text-black/50 opacity-100 transition-all duration-200 hover:scale-110 active:scale-90">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">sw</span>
           </span>
         </button>
       </div>
